@@ -23,11 +23,14 @@ import java.util.concurrent.Executors;
 @Component
 public class GeoFrame {
 
-    private RouterConfig routerConfig;
+    private final RouterConfig routerConfig;
+
+    private final VehicleWarning vehicleWarning;
 
     @Autowired
-    public GeoFrame(RouterConfig routerConfig) {
+    public GeoFrame(RouterConfig routerConfig, VehicleWarning vehicleWarning) {
         this.routerConfig = routerConfig;
+        this.vehicleWarning = vehicleWarning;
     }
 
     private ExecutorService executor;
@@ -67,6 +70,10 @@ public class GeoFrame {
         btpSocket = BtpSocket.on(station);
 
         statsLogger = new StatsLogger(executor);
+
+        for (int i = 0; i < 2; i++) {
+            executor.submit(sendToVehicle);
+        }
     }
 
 
@@ -136,18 +143,18 @@ public class GeoFrame {
                 latitude, longitude, speedMetersPerSecond, headingDegreesFromNorth);
     }
 
-    public void sendDenmArea(SimpleDenm simpleDenm) {
+    public void sendDenmArea(SimpleDenm simpleDenm, Boolean alone) {
         CoopIts.Denm denm = simpleDenm.asDenm();
-        Position position = vehiclePositionProvider.getPosition();
+        Position position = alone ? updatePositionByDenm(simpleDenm) : vehiclePositionProvider.getPosition();
         int radius = simpleDenm.semiMajorConfidence;
         Area target = Area.circle(position, radius);
         send(denm, Destination.Geobroadcast.geobroadcast(target));
         statsLogger.incTxDenm();
     }
 
-    public void sendDenmEllipse(SimpleDenm simpleDenm) {
+    public void sendDenmRectangle(SimpleDenm simpleDenm, Boolean alone) {
         CoopIts.Denm denm = simpleDenm.asDenm();
-        Position position = vehiclePositionProvider.getPosition();
+        Position position = alone ? updatePositionByDenm(simpleDenm) : vehiclePositionProvider.getPosition();
         int semiMajor = simpleDenm.semiMajorConfidence;
         int semiMinor = simpleDenm.semiMinorConfidence;
         Area target = Area.ellipse(position, semiMajor, semiMinor, 0);
@@ -155,4 +162,64 @@ public class GeoFrame {
         statsLogger.incTxDenm();
     }
 
+    public void sendDenmEllipse(SimpleDenm simpleDenm, Boolean alone) {
+        CoopIts.Denm denm = simpleDenm.asDenm();
+        Position position = alone ? updatePositionByDenm(simpleDenm) : vehiclePositionProvider.getPosition();
+        int semiMajor = simpleDenm.semiMajorConfidence;
+        int semiMinor = simpleDenm.semiMinorConfidence;
+        Area target = Area.ellipse(position, semiMajor, semiMinor, 0);
+        send(denm, Destination.Geobroadcast.geobroadcast(target));
+        statsLogger.incTxDenm();
+    }
+
+    public Position updatePositionByDenm(SimpleDenm simpleDenm) {
+        double latitude = simpleDenm.latitude;
+        double longitude = simpleDenm.longitude;
+        latitude /= 1e7;
+        longitude /= 1e7;
+        vehiclePositionProvider.update(latitude, longitude, 0, 0);
+        return vehiclePositionProvider.getPosition();
+    }
+
+
+    private final Runnable sendToVehicle =
+            new Runnable() {
+                @Override
+                public void run() {
+                    log.info("BtpSocket thread starting...");
+                    try {
+                        while (true) {
+                            BtpPacketWithArea btpPacketWithArea = btpSocket.receiveWithArea();
+                            BtpPacket btpPacket = btpPacketWithArea.getBtpPacket();
+                            byte[] payload = btpPacket.payload();
+                            int destinationPort = btpPacket.destinationPort();
+                            simpleFromProper(payload, destinationPort, btpPacketWithArea.getArea());
+                        }
+                    } catch (InterruptedException e) {
+                        log.warn("BTP socket interrupted during receive");
+                    }
+                    log.info("BtpSocket thread closing!");
+                }
+            };
+
+    private void simpleFromProper(
+            byte[] payload, int destinationPort, Area area) {
+        switch (destinationPort) {
+            case PORT_CAM:
+                statsLogger.incRxCam();
+                CoopIts.Cam cam = UperEncoder.decode(payload, CoopIts.Cam.class);
+                SimpleCam simpleCam = new SimpleCam(cam);
+                vehicleWarning.check(simpleCam);
+
+                break;
+            case PORT_DENM:
+                statsLogger.incRxDenm();
+                CoopIts.Denm denm = UperEncoder.decode(payload, CoopIts.Denm.class);
+                SimpleDenm simpleDenm = new SimpleDenm(denm);
+                vehicleWarning.check(simpleDenm, area);
+                break;
+            default:
+                // fallthrough
+        }
+    }
 }

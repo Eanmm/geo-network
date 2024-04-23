@@ -30,16 +30,25 @@ public class BtpSocket implements AutoCloseable {
                 packet.trafficClass(),
                 packet.senderPosition(),
                 packet.asBytes()
-                ));
+        ));
     }
 
     public BtpPacket receive() throws InterruptedException {
         GeonetData data = station.receive();
-        while(data.protocol != UpperProtocolType.BTP_A &&
+        while (data.protocol != UpperProtocolType.BTP_A &&
                 data.protocol != UpperProtocolType.BTP_B) {
             data = station.receive();
         }
         return BtpPacket.fromGeonetData(data);
+    }
+
+    public BtpPacketWithArea receiveWithArea() throws InterruptedException {
+        GeonetData data = station.receive();
+        while (data.protocol != UpperProtocolType.BTP_A &&
+                data.protocol != UpperProtocolType.BTP_B) {
+            data = station.receive();
+        }
+        return new BtpPacketWithArea(BtpPacket.fromGeonetData(data), data.warningArea);
     }
 
     @Override

@@ -15,10 +15,6 @@ public class StatsLogger {
     private AtomicInteger rxCam = new AtomicInteger();
     private AtomicInteger txDenm = new AtomicInteger();
     private AtomicInteger rxDenm = new AtomicInteger();
-    private AtomicInteger txIclcm = new AtomicInteger();
-    private AtomicInteger rxIclcm = new AtomicInteger();
-    private AtomicInteger txCustom = new AtomicInteger();
-    private AtomicInteger rxCustom = new AtomicInteger();
 
     /**
      * StatsLogger constructor.
@@ -26,7 +22,7 @@ public class StatsLogger {
      * @param executor Executor service the thread writing stats to log will be added to.
      */
     StatsLogger(ExecutorService executor) {
-        executor.submit(logStats);
+        // executor.submit(logStats);
     }
 
     /**
@@ -57,33 +53,6 @@ public class StatsLogger {
         this.rxDenm.incrementAndGet();
     }
 
-    /**
-     * Increment the count of transmitted ICLCM messages.
-     */
-    public void incTxIclcm() {
-        this.txIclcm.incrementAndGet();
-    }
-
-    /**
-     * Increment the count of received ICLCM messages.
-     */
-    public void incRxIclcm() {
-        this.rxIclcm.incrementAndGet();
-    }
-
-    /**
-     * Increment the count of transmitted custom messages.
-     */
-    public void incTxCustom() {
-        this.txCustom.incrementAndGet();
-    }
-
-    /**
-     * Increment the count of received custom messages.
-     */
-    public void incRxCustom() {
-        this.rxCustom.incrementAndGet();
-    }
 
     /**
      * Dedicated thread for periodically logging statistics.
@@ -112,17 +81,11 @@ public class StatsLogger {
                         /* Log stats */
                         log.info(
                                 "#CAM (Tx/Rx): {}/{} "
-                                        + "| #DENM (Tx/Rx): {}/{} "
-                                        + "| #iCLCM (Tx/Rx): {}/{} "
-                                        + "| #Custom (Tx/Rx): {}/{}",
+                                        + "| #DENM (Tx/Rx): {}/{} ",
                                 txCam,
                                 rxCam,
                                 txDenm,
-                                rxDenm,
-                                txIclcm,
-                                rxIclcm,
-                                txCustom,
-                                rxCustom);
+                                rxDenm);
                     }
                 }
             };

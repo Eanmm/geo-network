@@ -19,6 +19,7 @@ public final class GeonetData {
     public final Optional<TrafficClass>       trafficClass;
     public final Optional<LongPositionVector> sender;
     public final byte[]                       payload;  // Final, but mutable content!
+    public Area warningArea;
 
     public GeonetData(
             UpperProtocolType            protocol,

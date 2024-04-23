@@ -1,39 +1,27 @@
 package net.gcdc.geonetworking;
 
-import java.io.IOException;
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 import net.gcdc.geonetworking.Destination.Geobroadcast;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.Duration;
 import org.threeten.bp.Instant;
 
+import java.io.IOException;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.util.*;
+import java.util.concurrent.*;
+
 
 /* Java and ETSI both use Big Endian. */
 public class GeonetStation implements Runnable, AutoCloseable {
 
-    private StationConfig                         config;
-    private LinkLayer                             linkLayer;
-    private PositionProvider                      positionProvider;
+    private StationConfig config;
+    private LinkLayer linkLayer;
+    private PositionProvider positionProvider;
     private final LinkedBlockingQueue<GeonetData> queueUpward = new LinkedBlockingQueue<>();
-    private final Collection<GeonetDataListener>  listeners = new ArrayList<>();
-    private int                                   nextFreeSequenceNumber = 0;
+    private final Collection<GeonetDataListener> listeners = new ArrayList<>();
+    private int nextFreeSequenceNumber = 0;
     private final MacAddress senderMac;
 
     private LocationTable locationTable;
@@ -50,11 +38,11 @@ public class GeonetStation implements Runnable, AutoCloseable {
             Executors.newSingleThreadScheduledExecutor();
 
     private boolean isPromiscuous = true;
- // Do we need concurrent?
+    // Do we need concurrent?
     private final Map<PacketId, ScheduledFuture<?>> contentionSet = new ConcurrentHashMap<>();
     private final Set<PacketId> seenPackets = new HashSet<>();
 
-    
+
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
         this(config, linkLayer, positionProvider, EMPTY_MAC);
     }
@@ -68,7 +56,10 @@ public class GeonetStation implements Runnable, AutoCloseable {
         this.positionProvider = positionProvider;
         this.senderMac = senderMac;
         this.locationTable = new LocationTable(new ConfigProvider() {
-            @Override public StationConfig config() { return GeonetStation.this.config;}
+            @Override
+            public StationConfig config() {
+                return GeonetStation.this.config;
+            }
         });
         logger.info("Initialized station with GN address {} and MAC address {}", config.getItsGnLoacalGnAddr(), this.senderMac);
     }
@@ -81,7 +72,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private short sequenceNumber() {
         short result = (short) nextFreeSequenceNumber;
         nextFreeSequenceNumber++;
-        if (nextFreeSequenceNumber > (1 << 16) - 1) { nextFreeSequenceNumber = 0; }
+        if (nextFreeSequenceNumber > (1 << 16) - 1) {
+            nextFreeSequenceNumber = 0;
+        }
         return result;
     }
 
@@ -104,8 +97,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 data.destination.maxHopLimit().orElse((byte) config.getItsGnDefaultHopLimit()));
     }
 
-    /** Adds a listener for GeonetData indications (received messages from link layer).
-     *
+    /**
+     * Adds a listener for GeonetData indications (received messages from link layer).
+     * <p>
      * Listeners do not disable queue-based solution, so someone have to empty that queue using
      * {@link #receive()} to avoid out-of-memory problems.
      **/
@@ -132,12 +126,12 @@ public class GeonetStation implements Runnable, AutoCloseable {
         switch (data.destination.typeAndSubtype()) {
             case SINGLE_HOP: {
                 int mediaInfo = 0x0000; // Reserved 32-bit field for media-dependent operations.
-                                        // Set to 0 if not used. Can be used for DCC-related
-                                        // information in ITS-G5 (ETSI TS 102 636-4-2).
+                // Set to 0 if not used. Can be used for DCC-related
+                // information in ITS-G5 (ETSI TS 102 636-4-2).
 
                 ByteBuffer llPayload = ByteBuffer.allocate(
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
-                        40 + data.payload.length);
+                                40 + data.payload.length);
                 if (linkLayer.hasEthernetHeader()) {
                     llPayload.put(BROADCAST_MAC.asBytes());
                     llPayload.put(senderMac.asBytes());
@@ -161,12 +155,14 @@ public class GeonetStation implements Runnable, AutoCloseable {
             case GEOANYCAST_RECTANGLE: {
                 MacAddress dstMac = BROADCAST_MAC;
                 if (linkLayer.hasEthernetHeader()) {
-                    Area area = ((Geobroadcast)data.destination).area();
+                    Area area = ((Geobroadcast) data.destination).area();
                     if (!area.contains(position())) {
                         logger.debug("Area {} don't contains me {}", area, position());
                         Optional<MacAddress> betterDstMac = locationTable.closerThanMeTo(
-                            area.center(), position(), new HashSet<MacAddress>());
-                        if (betterDstMac.isPresent()) { dstMac = betterDstMac.get(); }
+                                area.center(), position(), new HashSet<MacAddress>());
+                        if (betterDstMac.isPresent()) {
+                            dstMac = betterDstMac.get();
+                        }
                     }
                 }
                 ByteBuffer llPayload = packGeobroadcast(dstMac, senderMac, completeData, sequenceNumber());
@@ -178,7 +174,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 logger.debug("Send, BEACON, hasEtherHeader: {}", linkLayer.hasEthernetHeader());
                 ByteBuffer llPayload = ByteBuffer.allocate(
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
-                        36);
+                                36);
                 if (linkLayer.hasEthernetHeader()) {
                     llPayload.put(BROADCAST_MAC.asBytes());
                     llPayload.put(senderMac.asBytes());
@@ -202,7 +198,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
     }
 
-    /** Interface to lower layer (Ethernet/ITS-G5/802.11p, Link Layer) */
+    /**
+     * Interface to lower layer (Ethernet/ITS-G5/802.11p, Link Layer)
+     */
     private void onReceiveFromLowerLayer(byte[] payload) throws InterruptedException {
         logger.debug("GN Received payload of size {}", payload.length);
         // Do we want to clone payload before we start reading from it?
@@ -214,7 +212,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 buffer.get(llDstAddress);
                 // Should be either me or broadcast.
                 MacAddress dstMac = MacAddress.fromBytes(llDstAddress);
-                if (!isPromiscuous  && !dstMac.equals(senderMac) &&
+                if (!isPromiscuous && !dstMac.equals(senderMac) &&
                         !dstMac.equals(BROADCAST_MAC)) {
                     return;
                 }
@@ -226,7 +224,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 }
             }
 
-            BasicHeader  basicHeader  = BasicHeader.getFrom(buffer);
+            BasicHeader basicHeader = BasicHeader.getFrom(buffer);
             if (basicHeader.version() != config.getItsGnProtocolVersion()) {
                 logger.warn("Unrecognized protocol version: " + basicHeader.version());
                 return;
@@ -247,7 +245,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(commonHeader.trafficClass()),
                             Optional.of(senderLpv),
                             upperPayload
-                            );
+                    );
                     sendToUpperLayer(indication);
                     // If there is no Ethernet header, llSrcAddress is all 0.
                     locationTable.updateFromDirectMessage(senderLpv.address().get(),
@@ -271,7 +269,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(commonHeader.trafficClass()),
                             Optional.of(senderLpv),
                             upperPayload
-                            );
+                    );
                     if (!isDuplicate(indication, sequenceNumber)) {
                         sendToUpperLayer(indication);
                     }
@@ -286,8 +284,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 case GEOBROADCAST_RECTANGLE:
                 case GEOANYCAST_CIRCLE:
                 case GEOANYCAST_ELLIPSE:
-                case GEOANYCAST_RECTANGLE:
-                {
+                case GEOANYCAST_RECTANGLE: {
                     short sequenceNumber = buffer.getShort();
                     buffer.getShort();  // Reserved 16-bit.
                     LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
@@ -306,11 +303,12 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(commonHeader.trafficClass()),
                             Optional.of(senderLpv),
                             upperPayload
-                            );
+                    );
                     if (area.contains(position()) && !isDuplicate(indication, sequenceNumber)) {
+                        indication.warningArea = area;
                         sendToUpperLayer(indication);
                     }
-                                        
+
                     locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
                     forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));
                     markAsSeen(indication, sequenceNumber);  // Duplicate packet detection.
@@ -347,7 +345,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(commonHeader.trafficClass()),
                             Optional.of(senderLpv),
                             upperPayload
-                            );
+                    );
                     final long myMac = (new Address(config.getItsGnLoacalGnAddr())).lowLevelAddress();
                     if (destSpv.address().lowLevelAddress() == myMac
                             && !isDuplicate(indication, sequenceNumber)) {
@@ -369,14 +367,17 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
     }
 
-    
 
     private void sendForwardedPacket(GeonetData data, int sequenceNumber, Instant timeAdded, MacAddress dstMac) {
-        if (!linkLayer.hasEthernetHeader()) { return; }  // Forwarding does not work without MAC.
+        if (!linkLayer.hasEthernetHeader()) {
+            return;
+        }  // Forwarding does not work without MAC.
         double queuingTimeInSeconds = Duration.between(timeAdded, timeInstantNow()).toMillis() * 0.001;
         double newLifetime = data.destination.maxLifetimeSeconds().get() - queuingTimeInSeconds;
-        byte newHops = (byte)(data.destination.remainingHopLimit().get() - 1);
-        if (newLifetime <= 0 || newHops < 2) { return; }
+        byte newHops = (byte) (data.destination.remainingHopLimit().get() - 1);
+        if (newLifetime <= 0 || newHops < 2) {
+            return;
+        }
         Geobroadcast destination = ((Geobroadcast) data.destination)
                 .withMaxHopLimit(newHops).withMaxLifetimeSeconds(newLifetime);
         GeonetData newData = data.withDestination(destination);
@@ -392,7 +393,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     private ByteBuffer packGeobroadcast(MacAddress dstMac, MacAddress srcMac, GeonetData data, int sequenceNumber) {
         ByteBuffer llPayload = ByteBuffer.allocate(
-            (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) + 56 + data.payload.length);
+                (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) + 56 + data.payload.length);
 
         if (linkLayer.hasEthernetHeader()) {
             llPayload.put(dstMac.asBytes());
@@ -401,18 +402,18 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
         basicHeader(data).putTo(llPayload);               // Octets  0- 3
         commonHeader(data).putTo(llPayload);              // Octets  4-11
-        llPayload.putShort((short)sequenceNumber);        // Octets 12-13
-        llPayload.putShort((short)0);        // Reserved. // Octets 14-15
+        llPayload.putShort((short) sequenceNumber);        // Octets 12-13
+        llPayload.putShort((short) 0);        // Reserved. // Octets 14-15
         data.sender.get().putTo(llPayload);               // Octets 16-39
-        ((Geobroadcast)data.destination).area().putTo(llPayload);  // Octets 40-53
-        llPayload.putShort((short)0);        // Reserved. // Octets 54-55
+        ((Geobroadcast) data.destination).area().putTo(llPayload);  // Octets 40-53
+        llPayload.putShort((short) 0);        // Reserved. // Octets 54-55
         llPayload.put(data.payload);
         return llPayload;
     }
 
 
     private void contentionBasedForwarding(final GeonetData data, final short sequenceNumber,
-            final MacAddress lastForwarderMac) {
+                                           final MacAddress lastForwarderMac) {
         // Packet can arrive from another forwarder, but will have the same sequence number,
         // the same source position vector (even with timestamp), but different remaining hop limit
         // different lifetime, different source MAC.
@@ -429,11 +430,13 @@ public class GeonetStation implements Runnable, AutoCloseable {
             return;
         }
 
-        if(data.destination.remainingHopLimit().orElse((byte) 1) < 2) { return; }
+        if (data.destination.remainingHopLimit().orElse((byte) 1) < 2) {
+            return;
+        }
 
-        if (((Geobroadcast)data.destination).area().contains(position())) {
-            long   maxTimeout  = config.getItsGnGeoBroadcastCbfMaxTime();        // In milliseconds.
-            long   minTimeout  = config.getItsGnGeoBroadcastCbfMinTime();        // In milliseconds.
+        if (((Geobroadcast) data.destination).area().contains(position())) {
+            long maxTimeout = config.getItsGnGeoBroadcastCbfMaxTime();        // In milliseconds.
+            long minTimeout = config.getItsGnGeoBroadcastCbfMinTime();        // In milliseconds.
             double maxDistance = config.getItsGnDefaultMaxCommunicationRange();  // In meters.
 
 
@@ -453,8 +456,14 @@ public class GeonetStation implements Runnable, AutoCloseable {
             final Instant schedulingInstant = timeInstantNow();
 
             ScheduledFuture<?> sendingFuture = scheduler.schedule(
-                    new Runnable() { @Override public void run() {
-                        sendForwardedPacket(data, sequenceNumber, schedulingInstant, BROADCAST_MAC); }; },
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            sendForwardedPacket(data, sequenceNumber, schedulingInstant, BROADCAST_MAC);
+                        }
+
+                        ;
+                    },
                     timeoutMillis, TimeUnit.MILLISECONDS);
 
             contentionSet.put(packetId, sendingFuture);
@@ -465,7 +474,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
     }
 
     private void simpleForwarding(GeonetData indication, int sequenceNumber, MacAddress lastForwarderMac) {
-        Area destinationArea = ((Geobroadcast)indication.destination).area();
+        Area destinationArea = ((Geobroadcast) indication.destination).area();
         if (destinationArea.contains(position())) {  // We're inside - broadcast to all!
             sendForwardedPacket(indication, sequenceNumber, timeInstantNow(), BROADCAST_MAC);
         } else {
@@ -480,7 +489,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     private void greedyForwarding(GeonetData indication, int sequenceNumber, MacAddress lastForwarderMac) {
         Optional<MacAddress> neighborMac = locationTable.closerThanMeTo(
-                ((Geobroadcast)indication.destination).area().center(),
+                ((Geobroadcast) indication.destination).area().center(),
                 position(), new HashSet<MacAddress>(Arrays.asList(lastForwarderMac)));
         // Fall back to broadcast if no neighbor is fond. Alternative is to buffer and wait.
         MacAddress dstMac = neighborMac.orElse(BROADCAST_MAC);
@@ -490,7 +499,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private void forwardIfNecessary(GeonetData indication, short sequenceNumber, MacAddress lastForwarderMac) {
         // We can't forward if we don't know who was the last forwarder.
         // Packets have only the original sender, so for the last forwarder we need MAC address from LL.
-        if (!linkLayer.hasEthernetHeader()) { return; }
+        if (!linkLayer.hasEthernetHeader()) {
+            return;
+        }
 
         // Do not forward if remaining hop limit (RHL) is too low.
         // TODO: is it 1 or 0 which is too low? Beacons are sent with RHL=1, but they are never
@@ -501,7 +512,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
 
         // Do not forward GeoAnycast if we are one of the recipients.
-        Geobroadcast destination = (Geobroadcast)indication.destination;
+        Geobroadcast destination = (Geobroadcast) indication.destination;
         if (destination.isAnycast() && destination.area().contains(position())) {
             return;
         }
@@ -525,23 +536,28 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
     }
 
-    /** Returns the position of this station, from {@link #positionProvider}. */
+    /**
+     * Returns the position of this station, from {@link #positionProvider}.
+     */
     public Position position() {
         return positionProvider.getLatestPosition().position();
     }
 
-    /** Interface to lower layer (Ethernet/ITS-G5/802.11p, Link Layer) */
+    /**
+     * Interface to lower layer (Ethernet/ITS-G5/802.11p, Link Layer)
+     */
     private void sendToLowerLayer(ByteBuffer payload) throws IOException {
         linkLayer.send(payload.array());
     }
 
-    /** Private interface to send to upper layer (BTP, Transport Layer).
-     *
+    /**
+     * Private interface to send to upper layer (BTP, Transport Layer).
+     * <p>
      * This function serves as a 'single point of contact' for GeonetStation functions that need to
      * send data to upper layer.
-     *
+     * <p>
      * Provides an ability to refactor queue solution to a reactive-style solution later.
-     * */
+     */
     private void sendToUpperLayer(GeonetData indication) throws InterruptedException {
         queueUpward.put(indication);
         for (GeonetDataListener l : listeners) {
@@ -549,11 +565,13 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
     }
 
-    /** Returns the next Geonetworking Packet addressed to this station.
+    /**
+     * Returns the next Geonetworking Packet addressed to this station.
      * This operation blocks until the next packet is received.
      * Service packets (Beacon, Location Service, forwarded packets) are omitted here.
-     *
-     * This is an interface to upper layer (BTP, Transport Layer). */
+     * <p>
+     * This is an interface to upper layer (BTP, Transport Layer).
+     */
     public GeonetData receive() throws InterruptedException {
         return queueUpward.take();
     }
@@ -561,7 +579,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
     @Override
     public void run() {
         while (true) {
-            byte[] payload = new byte[] {};
+            byte[] payload = new byte[]{};
             try {
                 payload = linkLayer.receive();
             } catch (IOException e) {
@@ -606,7 +624,8 @@ public class GeonetStation implements Runnable, AutoCloseable {
             return GeonetStation.this;
         }
 
-        @Override public int hashCode() {
+        @Override
+        public int hashCode() {
             final int prime = 31;
             int result = 1;
             result = prime * result + getOuterType().hashCode();
@@ -616,7 +635,8 @@ public class GeonetStation implements Runnable, AutoCloseable {
             return result;
         }
 
-        @Override public boolean equals(Object obj) {
+        @Override
+        public boolean equals(Object obj) {
             if (this == obj) return true;
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
@@ -637,32 +657,31 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     /**
      * Indicates if a packet is a duplicate.
-     *
-     *  Version 1.2.1 of standard describes actually if a packet is duplicate or a predecessor of
-     *  another packet.
-     *
+     * <p>
+     * Version 1.2.1 of standard describes actually if a packet is duplicate or a predecessor of
+     * another packet.
+     * <p>
      * Standard first considers timestamps. If the arrived timestamp is before the last seen
      * timestamp from the same address, the packet is a duplicate.
-     *
+     * <p>
      * Since timestamps has a resolution of one millisecond, there might be several packets sent
      * within one millisecond all with the same timestamp. In that case, sequence numbers are
      * compared.
-     *
+     * <p>
      * Standard's method drops packets if there are two parallel broadcasts from the same sender.
      * E.g. RoadWorks and SlipperyRoad, sent every second. RW is sent, then SR is sent, but SR was
      * forwarded better and is delivered before RW. Then when RW finally arrives later, it is
      * discarded.
-     *
+     * <p>
      * We don't want to remove predecessors, so:
-     *  - use as a key in the last-seen-set (GN address + seq number + timestamp)
-     *  - keep entries in last-seen-set for 105 minutes (time equal to BasicHeader.Lifetime.MaximumLifetime)
-     *
+     * - use as a key in the last-seen-set (GN address + seq number + timestamp)
+     * - keep entries in last-seen-set for 105 minutes (time equal to BasicHeader.Lifetime.MaximumLifetime)
+     * <p>
      * Without timestamp, seq number wraps at 65535. Max lifetime is 105 minutes.
      * The rate needed to send 65535 packets in 105 minutes is about 1 packet in 95 milliseconds.
      * If there will be broadcasts or unicasts faster than that, seq number alone will not be enough,
      * so we add timestamp too. It's just a moderate computation and memory overhead, we'll keep
      * a lot of GN addresses and sequence numbers anyway.
-     *
      */
     private boolean isDuplicate(GeonetData data, short sequenceNumber) {
         final PacketId packetId = new PacketId(data.sender.get().timestamp(), sequenceNumber,
@@ -679,8 +698,13 @@ public class GeonetStation implements Runnable, AutoCloseable {
             long lifetimeMillis = (long) (1000 * data.destination.maxLifetimeSeconds().orElse(
                     BasicHeader.Lifetime.MAX_VALUE.asSeconds()));
             scheduler.schedule(
-                new Runnable() { @Override public void run() { seenPackets.remove(packetId); } },
-                lifetimeMillis, TimeUnit.MILLISECONDS
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            seenPackets.remove(packetId);
+                        }
+                    },
+                    lifetimeMillis, TimeUnit.MILLISECONDS
             );
         } else {
             logger.debug("Duplicate! From {}, sn {}", data.sender.get().address().get(), sequenceNumber);
@@ -689,20 +713,30 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     private interface BeaconService {
         void start();
+
         void stop();
+
         void skipNextBeacon();
     }
 
-    private final BeaconService beaconService = new BeaconService () {
+    private final BeaconService beaconService = new BeaconService() {
 
         private Instant nextBeaconTime = timeInstantNow();
         private boolean isActive = false;  // TODO: Handle synchronization properly.
 
-        @Override public void start() { isActive = true; scheduleNextBeacon(); }
+        @Override
+        public void start() {
+            isActive = true;
+            scheduleNextBeacon();
+        }
 
-        @Override public void stop()  { isActive = false; }
+        @Override
+        public void stop() {
+            isActive = false;
+        }
 
-        @Override public void skipNextBeacon() {
+        @Override
+        public void skipNextBeacon() {
             nextBeaconTime = timeInstantNow().plusMillis(randomDelayMs());
         }
 
@@ -710,7 +744,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             Optional<TrafficClass> emptyTrafficClass = Optional.empty();    // #send will use default.
             Optional<LongPositionVector> emptyPosition = Optional.empty();  // #send fills in current.
             return new GeonetData(UpperProtocolType.ANY, Destination.beacon(),
-                    emptyTrafficClass, emptyPosition, new byte[] {});
+                    emptyTrafficClass, emptyPosition, new byte[]{});
         }
 
         private void maybeSendBeacon() {
@@ -726,10 +760,19 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
         private void scheduleNextBeacon() {
             scheduler.schedule(
-                new Runnable() { @Override public void run() {
-                    if (isActive) { maybeSendBeacon(); scheduleNextBeacon(); } }; },
-                randomDelayMs(),
-                TimeUnit.MILLISECONDS);
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isActive) {
+                                maybeSendBeacon();
+                                scheduleNextBeacon();
+                            }
+                        }
+
+                        ;
+                    },
+                    randomDelayMs(),
+                    TimeUnit.MILLISECONDS);
         }
 
         private long randomDelayMs() {
