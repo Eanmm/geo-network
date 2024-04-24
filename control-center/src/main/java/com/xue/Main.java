@@ -1,5 +1,6 @@
 package com.xue;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,6 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @create 2024-04-22 14:02
  */
 @SpringBootApplication
+//扫描包
+@MapperScan("com.xue.mapper")
 public class Main {
 
     public static void main(String[] args) {
