@@ -62,6 +62,8 @@ public class GeoFrame {
 
 
         station = new GeonetStation(new StationConfig(), linkLayer, vehiclePositionProvider, senderMac);
+        station.regionalJudgmentIsRequired.set(false);
+
         stationThread = new Thread(station);
         stationThread.start();
 
@@ -128,8 +130,6 @@ public class GeoFrame {
 
     public void sendCam(SimpleCam simpleCam) {
         CoopIts.Cam cam = simpleCam.asCam();
-        send(cam);
-        statsLogger.incTxCam();
         // 更新位置信息
         double latitude = (double) simpleCam.getLatitude();
         latitude /= 1e7;
@@ -141,33 +141,17 @@ public class GeoFrame {
         headingDegreesFromNorth *= 10;
         vehiclePositionProvider.update(
                 latitude, longitude, speedMetersPerSecond, headingDegreesFromNorth);
+        send(cam);
+        statsLogger.incTxCam();
     }
 
-    public void sendDenmArea(SimpleDenm simpleDenm, Boolean alone) {
-        CoopIts.Denm denm = simpleDenm.asDenm();
-        Position position = alone ? updatePositionByDenm(simpleDenm) : vehiclePositionProvider.getPosition();
-        int radius = simpleDenm.semiMajorConfidence;
-        Area target = Area.circle(position, radius);
-        send(denm, Destination.Geobroadcast.geobroadcast(target));
-        statsLogger.incTxDenm();
-    }
-
-    public void sendDenmRectangle(SimpleDenm simpleDenm, Boolean alone) {
+    public void sendDenm(SimpleDenm simpleDenm, Boolean alone, Integer areaType) {
         CoopIts.Denm denm = simpleDenm.asDenm();
         Position position = alone ? updatePositionByDenm(simpleDenm) : vehiclePositionProvider.getPosition();
         int semiMajor = simpleDenm.semiMajorConfidence;
         int semiMinor = simpleDenm.semiMinorConfidence;
-        Area target = Area.ellipse(position, semiMajor, semiMinor, 0);
-        send(denm, Destination.Geobroadcast.geobroadcast(target));
-        statsLogger.incTxDenm();
-    }
-
-    public void sendDenmEllipse(SimpleDenm simpleDenm, Boolean alone) {
-        CoopIts.Denm denm = simpleDenm.asDenm();
-        Position position = alone ? updatePositionByDenm(simpleDenm) : vehiclePositionProvider.getPosition();
-        int semiMajor = simpleDenm.semiMajorConfidence;
-        int semiMinor = simpleDenm.semiMinorConfidence;
-        Area target = Area.ellipse(position, semiMajor, semiMinor, 0);
+        Area.Type type = Area.Type.fromCode(areaType);
+        Area target = type.createByAreaType(position, semiMajor, semiMinor, 0);
         send(denm, Destination.Geobroadcast.geobroadcast(target));
         statsLogger.incTxDenm();
     }

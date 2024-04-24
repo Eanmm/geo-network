@@ -1,5 +1,6 @@
 package com.xue.geoframe;
 
+import cn.hutool.core.util.IdUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,12 @@ public class Warning {
     /**
      * 警告id标识
      */
-    private Integer id;
+    private Long id;
+
+    /**
+     * 小车id
+     */
+    private Integer stationId;
 
     /**
      * 经度
@@ -44,13 +50,20 @@ public class Warning {
      */
     private Integer areaType;
 
-    public Warning(SimpleDenm simpleDenm, Area area) {
-        this.id = simpleDenm.stationId;
+    /**
+     * 是否是自己发送的
+     */
+    private Boolean self;
+
+    public Warning(SimpleDenm simpleDenm, Area area, Boolean self) {
+        this.id = IdUtil.getSnowflakeNextId();
+        this.stationId = simpleDenm.stationId;
         this.longitude = simpleDenm.longitude / 1e7;
         this.latitude = simpleDenm.latitude / 1e7;
         this.semiMajor = simpleDenm.semiMajorConfidence;
         this.semiMinor = simpleDenm.semiMinorConfidence;
         this.areaType = area.type().code();
+        this.self = self;
     }
 
 }

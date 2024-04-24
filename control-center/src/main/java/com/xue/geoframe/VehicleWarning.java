@@ -1,7 +1,10 @@
 package com.xue.geoframe;
 
+import com.xue.bean.MessageFactory;
+import com.xue.bean.Position;
 import lombok.extern.slf4j.Slf4j;
 import net.gcdc.geonetworking.Area;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -22,13 +25,22 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class VehicleWarning {
 
+    private final MessageFactory messageFactory;
+
+    @Autowired
+    public VehicleWarning(MessageFactory messageFactory) {
+        this.messageFactory = messageFactory;
+    }
+
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final ConcurrentHashMap<Integer, Car> carMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Warning> warningMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Warning> warningMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void loadVirtualVehicleWarnings() {
         log.info("加载数据库虚拟警告和车辆信息");
+        Warning warning = new Warning(messageFactory.getDenm(new Position(119.90259,30.265911),1,1),Area.circle(new net.gcdc.geonetworking.Position(119.90259,30.265911),1) , true);
+        warningMap.put(warning.getId(),warning);
     }
 
     /**
@@ -50,7 +62,7 @@ public class VehicleWarning {
     }
 
     public void check(SimpleDenm simpleDenm, Area area) {
-        Warning warning = new Warning(simpleDenm, area);
+        Warning warning = new Warning(simpleDenm, area, false);
         warningMap.put(warning.getId(), warning);
         executorService.submit(() -> {
             try {
@@ -68,6 +80,15 @@ public class VehicleWarning {
 
     public List<Warning> getWarnings() {
         return new ArrayList<>(warningMap.values());
+    }
+
+    public void addWarning(Warning warning) {
+        warning.setSelf(true);
+        warningMap.put(warning.getId(), warning);
+    }
+
+    public void removeWarningById(Long id) {
+        warningMap.remove(id);
     }
 
 

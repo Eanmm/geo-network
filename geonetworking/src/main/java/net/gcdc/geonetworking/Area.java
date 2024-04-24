@@ -76,9 +76,24 @@ public final class Area {
     }
 
     public enum Type {
-        CIRCLE(0),
-        RECTANGLE(1),
-        ELLIPSE(2);
+        CIRCLE(0){
+            @Override
+            public Area createByAreaType(Position center, int longSemiAxisMeters, int shortSemiAxisMeters, int azimuthAngleDegreesFromNorth) {
+                return Area.circle(center,longSemiAxisMeters);
+            }
+        },
+        RECTANGLE(1){
+            @Override
+            public Area createByAreaType(Position center, int longSemiAxisMeters, int shortSemiAxisMeters, int azimuthAngleDegreesFromNorth) {
+                return Area.rectangle(center,longSemiAxisMeters,shortSemiAxisMeters,azimuthAngleDegreesFromNorth);
+            }
+        },
+        ELLIPSE(2){
+            @Override
+            public Area createByAreaType(Position center, int longSemiAxisMeters, int shortSemiAxisMeters, int azimuthAngleDegreesFromNorth) {
+                return Area.ellipse(center,longSemiAxisMeters,shortSemiAxisMeters,azimuthAngleDegreesFromNorth);
+            }
+        };
 
         private final int code;
 
@@ -89,6 +104,11 @@ public final class Area {
         public int code() {
             return code;
         }
+
+        public abstract Area createByAreaType(Position center,
+                                                 int longSemiAxisMeters,
+                                                 int shortSemiAxisMeters,
+                                                 int azimuthAngleDegreesFromNorth);
 
         public static Type fromCode(int code) {
             for (Type h : Type.values()) {
@@ -149,7 +169,7 @@ public final class Area {
         double y = distance * Math.sin(Math.toRadians(relativeAngle));
         double a = distanceAmeters;
         double b = distanceBmeters;
-        logger.info("distance:{},bearing:{},relativeAngle:{},x:{},y:{},a:{},b:{},angleDegreesFromNorth:{}",distance,bearing,relativeAngle,x,y,a,b,angleDegreesFromNorth);
+        // logger.info("distance:{},bearing:{},relativeAngle:{},x:{},y:{},a:{},b:{},angleDegreesFromNorth:{}",distance,bearing,relativeAngle,x,y,a,b,angleDegreesFromNorth);
         switch (type) {
             case CIRCLE:
                 return 1 - Math.pow(x / a, 2) - Math.pow(y / a, 2);  // distanceB is 0 for circle.

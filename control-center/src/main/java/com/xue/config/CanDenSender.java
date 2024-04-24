@@ -1,11 +1,12 @@
 package com.xue.config;
 
+import cn.hutool.json.JSONUtil;
 import com.xue.bean.MessageFactory;
 import com.xue.bean.Position;
 import com.xue.controller.VehicleWarningSocket;
 import com.xue.geoframe.GeoFrame;
 import com.xue.geoframe.VehicleWarning;
-import com.xue.utils.JsonUtils;
+import com.xue.geoframe.Warning;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -15,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Xue
@@ -41,7 +43,24 @@ public class CanDenSender {
     @Async
     @Scheduled(fixedRate = 1000)
     public void sendCam() {
-        geoFrame.sendCam(messageFactory.getCam(new Position(1.0, 2.0)));
+        // geoFrame.sendCam(messageFactory.getCam(new Position(119.90259, 30.265911)));
+    }
+
+    @Async
+    @Scheduled(fixedRate = 1000)
+    public void sendDenm() {
+        List<Warning> warnings = vehicleWarning.getWarnings();
+        warnings.stream().filter(Warning::getSelf).forEach(warning -> {
+            geoFrame.sendDenm(
+                    messageFactory.getDenm(
+                            new Position(warning.getLongitude(), warning.getLatitude()),
+                            warning.getSemiMajor(),
+                            warning.getSemiMinor()
+                    ),
+                    true,
+                    warning.getAreaType()
+            );
+        });
     }
 
     @Async
@@ -53,7 +72,7 @@ public class CanDenSender {
                 put("warnings", vehicleWarning.getWarnings());
             }
         };
-        VehicleWarningSocket.send(JsonUtils.toString(sendMap));
+        VehicleWarningSocket.send(JSONUtil.toJsonStr(sendMap));
     }
 
 

@@ -11,6 +11,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /* Java and ETSI both use Big Endian. */
@@ -41,6 +42,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
     // Do we need concurrent?
     private final Map<PacketId, ScheduledFuture<?>> contentionSet = new ConcurrentHashMap<>();
     private final Set<PacketId> seenPackets = new HashSet<>();
+
+    // 是否需要区域判断
+    public AtomicBoolean regionalJudgmentIsRequired = new AtomicBoolean(true);
 
 
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
@@ -168,6 +172,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 ByteBuffer llPayload = packGeobroadcast(dstMac, senderMac, completeData, sequenceNumber());
 
                 sendToLowerLayer(llPayload);
+                beaconService.skipNextBeacon();  // Beacon is redundant with Single Hop Broadcast.
                 break;
             }
             case BEACON:
@@ -304,10 +309,16 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(senderLpv),
                             upperPayload
                     );
-                    if (area.contains(position()) && !isDuplicate(indication, sequenceNumber)) {
+                    if (regionalJudgmentIsRequired.get()){
+                        if (area.contains(position()) && !isDuplicate(indication, sequenceNumber)) {
+                            indication.warningArea = area;
+                            sendToUpperLayer(indication);
+                        }
+                    }else{
                         indication.warningArea = area;
                         sendToUpperLayer(indication);
                     }
+
 
                     locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
                     forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));

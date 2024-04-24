@@ -7,6 +7,6 @@ spring:
 router:
   countryCode: 86
   localPortForUdpLinkLayer: 4000
-  remoteAddressForUdpLinkLayer: 192.168.137.9:4001
-  macAddress: 00:0e:8E:52:A8:19
-  stationId: 1
+  remoteAddressForUdpLinkLayer: 192.168.3.2:4001
+  macAddress: 00:26:B6:F5:3F:0B
+  stationId: 66
