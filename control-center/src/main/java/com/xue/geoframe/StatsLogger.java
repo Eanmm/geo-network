@@ -22,7 +22,7 @@ public class StatsLogger {
      * @param executor Executor service the thread writing stats to log will be added to.
      */
     StatsLogger(ExecutorService executor) {
-        executor.submit(logStats);
+        // executor.submit(logStats);
     }
 
     /**
