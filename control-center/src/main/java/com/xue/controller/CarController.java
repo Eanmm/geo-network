@@ -55,4 +55,13 @@ public class CarController {
         return carService.getCarList();
     }
 
+    @ApiOperation("修改车辆信息")
+    @PostMapping("/update-car")
+    public Result updateCar(
+            @ApiParam(name = "CarEntity", required = true, value = "车辆信息")
+            @RequestBody CarEntity car
+    ) {
+        carService.updateCar(car);
+        return new Result().success(null);
+    }
 }

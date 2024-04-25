@@ -56,4 +56,12 @@ public class AlertController {
         return alertService.getAlertList();
     }
 
+    @ApiOperation("修改告警信息")
+    @PostMapping("/update-alert")
+    public Result updateAlert(@ApiParam(name = "AlertEntity", required = true, value = "告警信息")
+                              @RequestBody AlertEntity alert){
+        alertService.updateAlert(alert);
+        return new Result().success(null);
+    }
+
 }
