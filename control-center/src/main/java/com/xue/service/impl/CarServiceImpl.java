@@ -20,8 +20,8 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, CarEntity> implements
     }
 
     @Override
-    public void delCar(int carId) {
-        carMapper.delCar(carId);
+    public void delCar(int stationId) {
+        carMapper.delCar(stationId);
     }
 
     @Override
@@ -30,8 +30,8 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, CarEntity> implements
     }
 
     @Override
-    public CarEntity getCarById(int carId) {
-        return carMapper.getCarById(carId);
+    public CarEntity getCarById(int stationId) {
+        return carMapper.getCarById(stationId);
     }
 
     @Override

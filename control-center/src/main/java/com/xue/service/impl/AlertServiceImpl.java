@@ -20,8 +20,8 @@ public class AlertServiceImpl extends ServiceImpl<AlertMapper, AlertEntity> impl
     }
 
     @Override
-    public void delAlert(int alertId) {
-        alertMapper.delAlert(alertId);
+    public void delAlert(int stationId) {
+        alertMapper.delAlert(stationId);
     }
 
     @Override
@@ -30,8 +30,8 @@ public class AlertServiceImpl extends ServiceImpl<AlertMapper, AlertEntity> impl
     }
 
     @Override
-    public AlertEntity getAlertById(int alertId) {
-        return alertMapper.getAlertById(alertId);
+    public AlertEntity getAlertById(int stationId) {
+        return alertMapper.getAlertById(stationId);
     }
 
     @Override

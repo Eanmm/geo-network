@@ -15,7 +15,7 @@ public class CarEntity {
      */
     @ApiModelProperty("车辆ID")
     @TableId("CAR_ID")
-    private int carID;
+    private int stationId;
 
     /**
      * 车辆名称
@@ -27,16 +27,16 @@ public class CarEntity {
     /**
      * 车辆长度
      */
-    @ApiModelProperty("车辆长度")
+    @ApiModelProperty("车辆长度,单位cm")
     @TableField("CAR_LENGTH ")
-    private String carLength;
+    private int length;
 
     /**
      * 车辆宽度
      */
-    @ApiModelProperty("车辆宽度")
+    @ApiModelProperty("车辆宽度,单位cm")
     @TableField("CAR_WIDTH")
-    private String carWidth;
+    private int width;
 
     /**
      * 车辆颜色
@@ -50,20 +50,20 @@ public class CarEntity {
      */
     @ApiModelProperty("车辆方向")
     @TableField("CAR_DIRECTION")
-    private String carDirection;
+    private int direction;
 
     /**
      * 车辆位经度
      */
-    @ApiModelProperty("车辆位经度")
+    @ApiModelProperty("车辆位置经度")
     @TableField("CAR_LNG")
-    private String carLng;
+    private double longitude;
 
     /**
      * 车辆位置纬度
      */
     @ApiModelProperty("车辆位置纬度")
     @TableField("CAR_LAT")
-    private String carLat;
+    private double latitude;
 
 }

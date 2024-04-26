@@ -3,26 +3,24 @@
 <mapper namespace="com.xue.mapper.AlertMapper">
 
     <resultMap id="AlertEntityResultMap" type="com.xue.entity.AlertEntity">
-        <result column="ALERT_ID" jdbcType="INTEGER" property="alertID" />
-        <result column="ALERT_LENGTH" jdbcType="VARCHAR" property="alertLength" />
-        <result column="ALERT_WIDTH" jdbcType="VARCHAR" property="alertWidth" />
-        <result column="ALERT_ANGLE" jdbcType="VARCHAR" property="alertAngle" />
-        <result column="ALERT_TYPE" jdbcType="INTEGER" property="alertTYPE" />
-        <result column="ALERT_LNG" jdbcType="VARCHAR" property="alertLng" />
-        <result column="ALERT_LAT" jdbcType="VARCHAR" property="alertLat" />
+        <result column="ALERT_ID" jdbcType="INTEGER" property="stationId" />
+        <result column="ALERT_LENGTH" jdbcType="INTEGER" property="length" />
+        <result column="ALERT_WIDTH" jdbcType="INTEGER" property="width" />
+        <result column="ALERT_TYPE" jdbcType="INTEGER" property="type" />
+        <result column="ALERT_LNG" jdbcType="DOUBLE" property="longitude" />
+        <result column="ALERT_LAT" jdbcType="DOUBLE" property="latitude" />
     </resultMap>
 
     <insert id="insertAlert" parameterType="com.xue.entity.AlertEntity" useGeneratedKeys="true">
         insert into SmartTraffic.ALERT (ALERT_ID, ALERT_LENGTH, ALERT_WIDTH,
-                                        ALERT_ANGLE, ALERT_TYPE, ALERT_LNG,ALERT_LAT)
-        values (#{alertID,jdbcType=INTEGER}, #{alertLength,jdbcType=VARCHAR}, #{alertWidth,jdbcType=VARCHAR},
-                #{alertAngle,jdbcType=VARCHAR}, #{alertTYPE,jdbcType=INTEGER}, #{alertLng,jdbcType=VARCHAR},
-                #{alertLat,jdbcType=VARCHAR})
+                                        ALERT_TYPE, ALERT_LNG,ALERT_LAT)
+        values (#{stationId,jdbcType=INTEGER}, #{length,jdbcType=INTEGER}, #{width,jdbcType=INTEGER},
+                #{type,jdbcType=INTEGER}, #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE})
     </insert>
 
     <delete id="delAlert" >
         delete from SmartTraffic.ALERT
-        where ALERT_ID = #{alertID,jdbcType=INTEGER}
+        where ALERT_ID = #{stationId,jdbcType=INTEGER}
     </delete>
 
 
@@ -30,7 +28,7 @@
             parameterType="int">
         select *
         from SmartTraffic.ALERT
-        where ALERT_ID=#{alertID,jdbcType=INTEGER}
+        where ALERT_ID=#{stationId,jdbcType=INTEGER}
     </select>
 
     <select id="getAlertAll" resultMap="AlertEntityResultMap">
@@ -42,26 +40,23 @@
     <update id="updateAlertById" parameterType="com.xue.entity.AlertEntity">
         update SmartTraffic.ALERT
         <set>
-            <if test="alertLength != null">
-                ALERT_LENGTH = #{alertLength,jdbcType=VARCHAR},
+            <if test="length != null">
+                ALERT_LENGTH = #{length,jdbcType=INTEGER},
             </if>
-            <if test="alertWidth != null">
-                ALERT_WIDTH = #{alertWidth,jdbcType=VARCHAR},
+            <if test="width != null">
+                ALERT_WIDTH = #{width,jdbcType=INTEGER},
             </if>
-            <if test="alertAngle != null">
-                ALERT_ANGLE = #{alertAngle,jdbcType=VARCHAR},
+            <if test="type != null">
+                ALERT_TYPE = #{type,jdbcType=INTEGER},
             </if>
-            <if test="alertTYPE != null">
-                ALERT_TYPE = #{alertTYPE,jdbcType=INTEGER},
+            <if test="longitude != null">
+                ALERT_LNG = #{longitude,jdbcType=DOUBLE},
             </if>
-            <if test="alertLng != null">
-                ALERT_LNG = #{alertLng,jdbcType=VARCHAR},
-            </if>
-            <if test="alertLat != null">
-                ALERT_LAT = #{alertLat,jdbcType=VARCHAR},
+            <if test="latitude != null">
+                ALERT_LAT = #{latitude,jdbcType=DOUBLE},
             </if>
         </set>
-        where ALERT_ID = #{alertID,jdbcType=INTEGER}
+        where ALERT_ID = #{stationId,jdbcType=INTEGER}
     </update>
 
 

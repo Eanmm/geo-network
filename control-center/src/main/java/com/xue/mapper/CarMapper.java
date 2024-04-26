@@ -8,9 +8,9 @@ import java.util.List;
 public interface CarMapper extends BaseMapper<CarEntity> {
     void insertCar(CarEntity carEntity);
 
-    void delCar(int carID);
+    void delCar(int stationId);
 
-    CarEntity getCarById(int carID);
+    CarEntity getCarById(int stationId);
 
     List<CarEntity> getCarAll();
 

@@ -3,26 +3,26 @@
 <mapper namespace="com.xue.mapper.CarMapper">
 
     <resultMap id="CarEntityResultMap" type="com.xue.entity.CarEntity">
-        <result column="CAR_ID" jdbcType="INTEGER" property="carID" />
+        <result column="CAR_ID" jdbcType="INTEGER" property="stationId" />
         <result column="CAR_NAME" jdbcType="VARCHAR" property="carName" />
-        <result column="CAR_LENGTH" jdbcType="VARCHAR" property="carLength" />
-        <result column="CAR_WIDTH" jdbcType="VARCHAR" property="carWidth" />
+        <result column="CAR_LENGTH" jdbcType="INTEGER" property="length" />
+        <result column="CAR_WIDTH" jdbcType="INTEGER" property="width" />
         <result column="CAR_COLOR" jdbcType="VARCHAR" property="carColor" />
-        <result column="CAR_DIRECTION" jdbcType="VARCHAR" property="carDirection" />
-        <result column="CAR_LNG" jdbcType="VARCHAR" property="carLng" />
-        <result column="CAR_LAT" jdbcType="VARCHAR" property="carLat" />
+        <result column="CAR_DIRECTION" jdbcType="INTEGER" property="direction" />
+        <result column="CAR_LNG" jdbcType="DOUBLE" property="longitude" />
+        <result column="CAR_LAT" jdbcType="DOUBLE" property="latitude" />
     </resultMap>
 
     <insert id="insertCar" parameterType="com.xue.entity.CarEntity" useGeneratedKeys="true">
         insert into SmartTraffic.CAR (CAR_ID, CAR_NAME, CAR_LENGTH, CAR_WIDTH,
                                       CAR_COLOR, CAR_DIRECTION, CAR_LNG, CAR_LAT)
-        values (#{carID,jdbcType=INTEGER}, #{carName,jdbcType=VARCHAR}, #{carLength,jdbcType=VARCHAR}, #{carWidth,jdbcType=VARCHAR},
-                #{carColor,jdbcType=VARCHAR}, #{carDirection,jdbcType=VARCHAR}, #{carLng,jdbcType=VARCHAR}, #{carLat,jdbcType=VARCHAR})
+        values (#{stationId,jdbcType=INTEGER}, #{carName,jdbcType=VARCHAR}, #{length,jdbcType=INTEGER}, #{width,jdbcType=INTEGER},
+                #{carColor,jdbcType=VARCHAR}, #{direction,jdbcType=INTEGER}, #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE})
     </insert>
 
     <delete id="delCar" >
         delete from SmartTraffic.CAR
-        where CAR_ID = #{carID,jdbcType=INTEGER}
+        where CAR_ID = #{stationId,jdbcType=INTEGER}
     </delete>
 
 
@@ -30,7 +30,7 @@
             parameterType="int">
         select *
         from SmartTraffic.CAR
-        where CAR_ID=#{carID,jdbcType=INTEGER}
+        where CAR_ID=#{stationId,jdbcType=INTEGER}
     </select>
 
     <select id="getCarAll" resultMap="CarEntityResultMap">
@@ -45,26 +45,26 @@
             <if test="carName != null">
                 CAR_NAME = #{carName,jdbcType=VARCHAR},
             </if>
-            <if test="carLength != null">
-                CAR_LENGTH = #{carLength,jdbcType=VARCHAR},
+            <if test="length != null">
+                CAR_LENGTH = #{length,jdbcType=INTEGER},
             </if>
-            <if test="carWidth != null">
-                CAR_WIDTH = #{carWidth,jdbcType=VARCHAR},
+            <if test="width != null">
+                CAR_WIDTH = #{width,jdbcType=INTEGER},
             </if>
             <if test="carColor != null">
                 CAR_COLOR = #{carColor,jdbcType=VARCHAR},
             </if>
-            <if test="carDirection != null">
-                CAR_DIRECTION = #{carDirection,jdbcType=VARCHAR},
+            <if test="direction != null">
+                CAR_DIRECTION = #{direction,jdbcType=INTEGER},
             </if>
-            <if test="carLng != null">
-                CAR_LNG = #{carLng,jdbcType=VARCHAR},
+            <if test="longitude != null">
+                CAR_LNG = #{longitude,jdbcType=DOUBLE},
             </if>
-            <if test="carLat != null">
-                CAR_LAT = #{carLat,jdbcType=VARCHAR},
+            <if test="latitude != null">
+                CAR_LAT = #{latitude,jdbcType=DOUBLE},
             </if>
         </set>
-        where CAR_ID=#{carID,jdbcType=INTEGER}
+        where CAR_ID=#{stationId,jdbcType=INTEGER}
     </update>
 
 

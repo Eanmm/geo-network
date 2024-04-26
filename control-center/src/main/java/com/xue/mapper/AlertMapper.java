@@ -8,9 +8,9 @@ import java.util.List;
 public interface AlertMapper extends BaseMapper<AlertEntity> {
     void insertAlert(AlertEntity alertEntity);
 
-    void delAlert(int alertID);
+    void delAlert(int stationId);
 
-    AlertEntity getAlertById(int alertID);
+    AlertEntity getAlertById(int stationId);
 
     List<AlertEntity> getAlertAll();
 

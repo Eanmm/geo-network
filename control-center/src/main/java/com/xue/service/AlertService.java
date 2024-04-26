@@ -9,11 +9,11 @@ public interface AlertService extends IService<AlertEntity> {
 
     void addAlert(AlertEntity alert);
 
-    void delAlert(int alertId);
+    void delAlert(int stationId);
 
     List<AlertEntity> getAlertList();
 
-    AlertEntity getAlertById(int alertId);
+    AlertEntity getAlertById(int stationId);
 
     void updateAlert(AlertEntity alert);
 }

@@ -29,28 +29,28 @@ public class CarController {
     }
 
     @ApiOperation("删除车辆信息")
-    @PostMapping("/del-car")
+    @DeleteMapping("/del-car")
     public Result delCar(
-            @RequestParam(name = "carId", required = true)
+            @RequestParam(name = "stationId", required = true)
             @ApiParam(value = "车辆ID")
-                    int carId
+                    int stationId
     ){
-        carService.delCar(carId);
+        carService.delCar(stationId);
         return new Result().success(null);
     }
 
     @ApiOperation("精确查询车辆信息")
-    @PostMapping("/get-car")
+    @GetMapping("/get-car")
     CarEntity getCarById(
-            @RequestParam(name = "carId", required = true)
+            @RequestParam(name = "stationId", required = true)
             @ApiParam(value = "车辆ID")
-                    int carId
+                    int stationId
     ){
-        return carService.getCarById(carId);
+        return carService.getCarById(stationId);
     }
 
     @ApiOperation("查询全部车辆信息")
-    @PostMapping("/get-car/list")
+    @GetMapping("/get-car/list")
     List<CarEntity> getCarList(){
         return carService.getCarList();
     }

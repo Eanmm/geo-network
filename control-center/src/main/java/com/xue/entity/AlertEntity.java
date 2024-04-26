@@ -14,49 +14,42 @@ public class AlertEntity {
      */
     @ApiModelProperty("告警ID")
     @TableId("ALERT_ID")
-    private int alertID;
+    private int stationId;
 
     /**
-     * 告警长度
+     * 警告范围长
      */
-    @ApiModelProperty("告警长度")
+    @ApiModelProperty("警告范围长,单位cm")
     @TableField("ALERT_LENGTH ")
-    private String alertLength;
+    private int length;
 
     /**
-     * 告警宽度
+     * 警告范围宽
      */
-    @ApiModelProperty("告警宽度")
+    @ApiModelProperty("警告范围宽，单位cm")
     @TableField("ALERT_WIDTH")
-    private String alertWidth;
+    private int width;
 
     /**
-     * 告警角度
+     * 警告形状，0，1，2分别表示：圆形，矩形，椭圆形
      */
-    @ApiModelProperty("告警角度")
-    @TableField("ALERT_ANGLE")
-    private String alertAngle;
-
-    /**
-     * 告警形状，0，1，2分别表示：圆形，矩形，椭圆形
-     */
-    @ApiModelProperty("告警形状")
+    @ApiModelProperty("警告形状")
     @TableField("ALERT_TYPE")
-    private int alertTYPE;
+    private int type;
 
     /**
-     * 告警位置经度
+     * 警告中心经度信息
      */
-    @ApiModelProperty("告警位置经度")
+    @ApiModelProperty("警告中心经度信息")
     @TableField("ALERT_LNG")
-    private String alertLng;
+    private double longitude;
 
     /**
-     * 告警位置纬度
+     * 警告中心纬度信息
      */
-    @ApiModelProperty("告警位置纬度")
+    @ApiModelProperty("警告中心纬度信息")
     @TableField("ALERT_LAT")
-    private String alertLat;
+    private double latitude;
 
 
 }
