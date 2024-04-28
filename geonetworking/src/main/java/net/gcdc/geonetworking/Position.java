@@ -1,10 +1,8 @@
 package net.gcdc.geonetworking;
 
-import static java.lang.Math.asin;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-
 import java.nio.ByteBuffer;
+
+import static java.lang.Math.*;
 
 
 /**

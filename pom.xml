@@ -17,6 +17,7 @@
         <module>router</module>
         <module>car</module>
         <module>control-center</module>
+        <module>vehicle</module>
     </modules>
 
     <properties>
