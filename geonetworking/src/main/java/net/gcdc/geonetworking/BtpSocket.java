@@ -48,7 +48,7 @@ public class BtpSocket implements AutoCloseable {
                 data.protocol != UpperProtocolType.BTP_B) {
             data = station.receive();
         }
-        return new BtpPacketWithArea(BtpPacket.fromGeonetData(data), data.warningArea);
+        return new BtpPacketWithArea(BtpPacket.fromGeonetData(data), data.warningArea, data.inside);
     }
 
     @Override

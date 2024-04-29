@@ -1,6 +1,9 @@
 package com.xue.frame;
 
+import com.xue.Region;
 import com.xue.arrangement.Config;
+import com.xue.bean.AlertRelay;
+import com.xue.communication.QtMutual;
 import lombok.extern.slf4j.Slf4j;
 import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts;
@@ -89,7 +92,7 @@ public class GeoFrame {
                             BtpPacket btpPacket = btpPacketWithArea.getBtpPacket();
                             byte[] payload = btpPacket.payload();
                             int destinationPort = btpPacket.destinationPort();
-                            simpleFromProper(payload, destinationPort, btpPacketWithArea.getArea());
+                            simpleFromProper(payload, destinationPort, btpPacketWithArea.getArea(), btpPacketWithArea.getInside());
                         }
                     } catch (InterruptedException e) {
                         log.warn("BTP socket interrupted during receive");
@@ -104,20 +107,34 @@ public class GeoFrame {
     private static final short PORT_DENM = 2002;
     /* Message lifetime */
     private static final double CAM_LIFETIME_SECONDS = 0.9;
+
     private void simpleFromProper(
-            byte[] payload, int destinationPort, Area area) {
+            byte[] payload, int destinationPort, Area area, Boolean inside) {
         switch (destinationPort) {
             case PORT_CAM:
                 statsLogger.incRxCam();
                 CoopIts.Cam cam = UperEncoder.decode(payload, CoopIts.Cam.class);
                 SimpleCam simpleCam = new SimpleCam(cam);
-                //vehicleWarning.check(simpleCam);
+                Car car = new Car(simpleCam);
+                Region.getInstance().fetchCar(car);
 
                 break;
             case PORT_DENM:
                 statsLogger.incRxDenm();
                 CoopIts.Denm denm = UperEncoder.decode(payload, CoopIts.Denm.class);
                 SimpleDenm simpleDenm = new SimpleDenm(denm);
+                if (inside) {
+                    // 立刻透传
+                    QtMutual.sendMsg(new AlertRelay(simpleDenm.longitude / 1e7,
+                            simpleDenm.latitude / 1e7,
+                            area.type().code(),
+                            simpleDenm.semiMajorConfidence * 100,
+                            simpleDenm.semiMinorConfidence * 100
+                    ));
+                }
+                Warning warning = new Warning(simpleDenm, area.type().code());
+                Region.getInstance().fetchWarning(warning);
+                // 整合告警信息
                 //vehicleWarning.check(simpleDenm, area);
                 break;
             default:
@@ -131,7 +148,7 @@ public class GeoFrame {
      *
      * @param cam A proper CAM message.
      */
-    public void send(CoopIts.Cam cam) {
+    private void send(CoopIts.Cam cam) {
         byte[] bytes;
         try {
             bytes = UperEncoder.encode(cam);
@@ -208,7 +225,6 @@ public class GeoFrame {
         vehiclePositionProvider.update(latitude, longitude, 0, 0);
         return vehiclePositionProvider.getPosition();
     }
-
 
 
 }

@@ -315,6 +315,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             sendToUpperLayer(indication);
                         }
                     }else{
+                        indication.inside = area.contains(position()) && !isDuplicate(indication, sequenceNumber);
                         indication.warningArea = area;
                         sendToUpperLayer(indication);
                     }

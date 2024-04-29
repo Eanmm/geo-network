@@ -20,6 +20,7 @@ public final class GeonetData {
     public final Optional<LongPositionVector> sender;
     public final byte[]                       payload;  // Final, but mutable content!
     public Area warningArea;
+    public Boolean inside;
 
     public GeonetData(
             UpperProtocolType            protocol,

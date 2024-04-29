@@ -23,6 +23,8 @@ public class Main {
         GeoFrame.getInstance().initialize();
         // 加载Qt通讯相关
         QtMutual.getInstance().connect();
+        // 周期汇报
+        RealTimeMonitoring.getInstance().run();
     }
 
 }

@@ -27,6 +27,14 @@ public class Warning {
 
     private Integer width;
 
+    public Warning(Car car) {
+        this.stationId = car.getStationId();
+        this.longitude = car.getLongitude();
+        this.latitude = car.getLatitude();
+        this.type = 0;
+        this.length = car.getLength() + 2;
+        this.width = 0;
+    }
 
     public Warning(AlertRelay alertRelay) {
         this.stationId = Config.getInstance().getStationId();

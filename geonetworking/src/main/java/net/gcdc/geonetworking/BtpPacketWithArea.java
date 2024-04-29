@@ -10,6 +10,14 @@ public class BtpPacketWithArea {
 
     private Area area;
 
+    private Boolean inside;
+
+    public BtpPacketWithArea(BtpPacket btpPacket, Area area, Boolean inside) {
+        this.btpPacket = btpPacket;
+        this.area = area;
+        this.inside = inside;
+    }
+
     public BtpPacketWithArea(BtpPacket btpPacket, Area area) {
         this.btpPacket = btpPacket;
         this.area = area;
@@ -29,5 +37,13 @@ public class BtpPacketWithArea {
 
     public void setArea(Area area) {
         this.area = area;
+    }
+
+    public Boolean getInside() {
+        return inside;
+    }
+
+    public void setInside(Boolean inside) {
+        this.inside = inside;
     }
 }
