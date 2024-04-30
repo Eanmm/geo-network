@@ -1,12 +1,14 @@
 package com.xue.communication;
 
-import com.xue.Region;
+import com.xue.cache.Region;
+import com.xue.SelfWarning;
 import com.xue.bean.VehicleStatus;
 import com.xue.frame.*;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import net.gcdc.geonetworking.Position;
 
 /**
  * @author Xue
@@ -23,6 +25,8 @@ public class VehicleStatusHandler extends SimpleChannelInboundHandler<VehicleSta
         // 记录自身的位置和警告信息
         Region.getInstance().fetchCar(car);
         Region.getInstance().fetchWarning(warning);
+        // 更新当前坐标
+        SelfWarning.getInstance().setPosition(new Position(vehicleStatus.getLatitude(), vehicleStatus.getLongitude()));
         // 发送至链路层
         SimpleCam cam = MessageFactory.getInstance().getCam(car);
         GeoFrame.getInstance().sendCam(cam);

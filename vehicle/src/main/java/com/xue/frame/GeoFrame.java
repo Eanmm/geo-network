@@ -1,6 +1,6 @@
 package com.xue.frame;
 
-import com.xue.Region;
+import com.xue.cache.Region;
 import com.xue.arrangement.Config;
 import com.xue.bean.AlertRelay;
 import com.xue.communication.QtMutual;

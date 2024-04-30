@@ -1,4 +1,4 @@
-package com.xue;
+package com.xue.cache;
 
 /**
  * @author Xue

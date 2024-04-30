@@ -1,6 +1,7 @@
 package com.xue;
 
 import com.xue.bean.InstantInformation;
+import com.xue.cache.Region;
 import com.xue.communication.QtMutual;
 
 import java.util.concurrent.Executors;
@@ -25,7 +26,7 @@ public class RealTimeMonitoring {
     }
 
     public void run() {
-        ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService pool = Executors.newSingleThreadScheduledExecutor();
         pool.scheduleAtFixedRate(() -> {
             InstantInformation instantInformation = new InstantInformation(Region.getInstance().getCars(), Region.getInstance().getWarnings());
             QtMutual.sendMsg(instantInformation);
