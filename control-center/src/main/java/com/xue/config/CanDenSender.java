@@ -3,6 +3,7 @@ package com.xue.config;
 import com.xue.cache.Region;
 import com.xue.controller.VehicleWarningSocket;
 import com.xue.entity.AlertEntity;
+import com.xue.entity.CarEntity;
 import com.xue.frame.*;
 import com.xue.mapper.AlertMapper;
 import com.xue.mapper.CarMapper;
@@ -16,9 +17,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * @author Xue
@@ -41,8 +43,8 @@ public class CanDenSender {
         this.carMapper = carMapper;
     }
 
-    private CopyOnWriteArrayList<Warning> warnings = new CopyOnWriteArrayList<>();
-    private CopyOnWriteArrayList<Car> cars = new CopyOnWriteArrayList<>();
+    private volatile List<Warning> warnings = new ArrayList<>();
+    private volatile List<Car> cars = new ArrayList<>();
 
     @PostConstruct
     public void init() {
@@ -51,20 +53,12 @@ public class CanDenSender {
 
     public void cacheWarningsSynchronization() {
         List<AlertEntity> alertList = alertMapper.selectList(null);
-        CopyOnWriteArrayList<Warning> freshWarnings = new CopyOnWriteArrayList<>();
-        alertList.forEach(alert -> {
-            Warning warning = new Warning(alert);
-            freshWarnings.add(warning);
-        });
-        warnings = freshWarnings;
+        warnings = alertList.stream().map(Warning::new).collect(Collectors.toList());
     }
 
     public void cacheCarsSynchronization() {
-        CopyOnWriteArrayList<Car> freshCars = new CopyOnWriteArrayList<>();
-        carMapper.selectList(null).forEach(car -> {
-            freshCars.add(new Car(car));
-        });
-        cars = freshCars;
+        List<CarEntity> carEntities = carMapper.selectList(null);
+        cars = carEntities.stream().map(Car::new).collect(Collectors.toList());
     }
 
 
