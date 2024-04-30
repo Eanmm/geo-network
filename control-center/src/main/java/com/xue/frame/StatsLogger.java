@@ -1,4 +1,4 @@
-package com.xue.geoframe;
+package com.xue.frame;
 
 import lombok.extern.slf4j.Slf4j;
 

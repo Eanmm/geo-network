@@ -1,4 +1,4 @@
-package com.xue.geoframe;
+package com.xue.frame;
 
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.LongPositionVector;

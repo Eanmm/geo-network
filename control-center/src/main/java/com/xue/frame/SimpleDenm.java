@@ -13,7 +13,7 @@
  * the License.
  */
 
-package com.xue.geoframe;
+package com.xue.frame;
 
 import lombok.extern.slf4j.Slf4j;
 import net.gcdc.asn1.datatypes.IntRange;

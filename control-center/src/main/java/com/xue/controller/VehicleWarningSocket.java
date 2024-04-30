@@ -51,7 +51,9 @@ public class VehicleWarningSocket {
      */
     public static void send(String message) {
         for (VehicleWarningSocket client : clients) {
-            client.session.getAsyncRemote().sendText(message);
+            if (client.session != null && client.session.isOpen()) {
+                client.session.getAsyncRemote().sendText(message);
+            }
         }
     }
 

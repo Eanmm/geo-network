@@ -1,5 +1,6 @@
-package com.xue.geoframe;
+package com.xue.frame;
 
+import com.xue.cache.Region;
 import com.xue.config.RouterConfig;
 import lombok.extern.slf4j.Slf4j;
 import net.gcdc.asn1.uper.UperEncoder;
@@ -8,7 +9,6 @@ import net.gcdc.geonetworking.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 
 /**
  * @author Xue
- * @create 2024-04-22 14:24
+ * @create 2024-04-28 10:26
  */
 @Slf4j
 @Component
@@ -25,12 +25,9 @@ public class GeoFrame {
 
     private final RouterConfig routerConfig;
 
-    private final VehicleWarning vehicleWarning;
-
     @Autowired
-    public GeoFrame(RouterConfig routerConfig, VehicleWarning vehicleWarning) {
+    public GeoFrame(RouterConfig routerConfig) {
         this.routerConfig = routerConfig;
-        this.vehicleWarning = vehicleWarning;
     }
 
     private ExecutorService executor;
@@ -40,17 +37,18 @@ public class GeoFrame {
     private BtpSocket btpSocket;
     private StatsLogger statsLogger;
 
-    @PostConstruct
-    public void startGeo() throws SocketException {
-        log.info("geoframe start");
-
+    /**
+     * 初始化
+     */
+    public void initialize() throws SocketException {
+        log.info("geo frame start");
         executor = Executors.newCachedThreadPool();
         MacAddress senderMac = new MacAddress(routerConfig.getMacAddress());
         Address address =
                 new Address(
                         true, // isManual,
                         StationType.values()[12], // 5 for passenger car
-                        routerConfig.getCountryCode(),
+                        86,
                         senderMac.value());
         vehiclePositionProvider = new VehiclePositionProvider(address);
 
@@ -78,6 +76,26 @@ public class GeoFrame {
         }
     }
 
+    private final Runnable sendToVehicle =
+            new Runnable() {
+                @Override
+                public void run() {
+                    log.info("BtpSocket thread starting...");
+                    try {
+                        while (true) {
+                            BtpPacketWithArea btpPacketWithArea = btpSocket.receiveWithArea();
+                            BtpPacket btpPacket = btpPacketWithArea.getBtpPacket();
+                            byte[] payload = btpPacket.payload();
+                            int destinationPort = btpPacket.destinationPort();
+                            simpleFromProper(payload, destinationPort, btpPacketWithArea.getArea(), btpPacketWithArea.getInside());
+                        }
+                    } catch (InterruptedException e) {
+                        log.warn("BTP socket interrupted during receive");
+                    }
+                    log.info("BtpSocket thread closing!");
+                }
+            };
+
 
     /* BTP ports for CAM/DENM/iCLCM/CUSTOM */
     private static final short PORT_CAM = 2001;
@@ -85,12 +103,38 @@ public class GeoFrame {
     /* Message lifetime */
     private static final double CAM_LIFETIME_SECONDS = 0.9;
 
+    private void simpleFromProper(
+            byte[] payload, int destinationPort, Area area, Boolean inside) {
+        switch (destinationPort) {
+            case PORT_CAM:
+                statsLogger.incRxCam();
+                CoopIts.Cam cam = UperEncoder.decode(payload, CoopIts.Cam.class);
+                SimpleCam simpleCam = new SimpleCam(cam);
+                Car car = new Car(simpleCam);
+                Region.getInstance().fetchCar(car);
+
+                break;
+            case PORT_DENM:
+                statsLogger.incRxDenm();
+                CoopIts.Denm denm = UperEncoder.decode(payload, CoopIts.Denm.class);
+                SimpleDenm simpleDenm = new SimpleDenm(denm);
+                Warning warning = new Warning(simpleDenm, area.type().code());
+                Region.getInstance().fetchWarning(warning);
+                // 整合告警信息
+                //vehicleWarning.check(simpleDenm, area);
+                break;
+            default:
+                // fallthrough
+        }
+    }
+
+
     /**
      * Broadcast a proper CAM message.
      *
      * @param cam A proper CAM message.
      */
-    public void send(CoopIts.Cam cam) {
+    private void send(CoopIts.Cam cam) {
         byte[] bytes;
         try {
             bytes = UperEncoder.encode(cam);
@@ -128,6 +172,7 @@ public class GeoFrame {
         }
     }
 
+
     public void sendCam(SimpleCam simpleCam) {
         CoopIts.Cam cam = simpleCam.asCam();
         // 更新位置信息
@@ -145,6 +190,7 @@ public class GeoFrame {
         statsLogger.incTxCam();
     }
 
+
     public void sendDenm(SimpleDenm simpleDenm, Boolean alone, Integer areaType) {
         CoopIts.Denm denm = simpleDenm.asDenm();
         Position position = alone ? updatePositionByDenm(simpleDenm) : vehiclePositionProvider.getPosition();
@@ -156,6 +202,7 @@ public class GeoFrame {
         statsLogger.incTxDenm();
     }
 
+
     public Position updatePositionByDenm(SimpleDenm simpleDenm) {
         double latitude = simpleDenm.latitude;
         double longitude = simpleDenm.longitude;
@@ -166,44 +213,4 @@ public class GeoFrame {
     }
 
 
-    private final Runnable sendToVehicle =
-            new Runnable() {
-                @Override
-                public void run() {
-                    log.info("BtpSocket thread starting...");
-                    try {
-                        while (true) {
-                            BtpPacketWithArea btpPacketWithArea = btpSocket.receiveWithArea();
-                            BtpPacket btpPacket = btpPacketWithArea.getBtpPacket();
-                            byte[] payload = btpPacket.payload();
-                            int destinationPort = btpPacket.destinationPort();
-                            simpleFromProper(payload, destinationPort, btpPacketWithArea.getArea());
-                        }
-                    } catch (InterruptedException e) {
-                        log.warn("BTP socket interrupted during receive");
-                    }
-                    log.info("BtpSocket thread closing!");
-                }
-            };
-
-    private void simpleFromProper(
-            byte[] payload, int destinationPort, Area area) {
-        switch (destinationPort) {
-            case PORT_CAM:
-                statsLogger.incRxCam();
-                CoopIts.Cam cam = UperEncoder.decode(payload, CoopIts.Cam.class);
-                SimpleCam simpleCam = new SimpleCam(cam);
-                vehicleWarning.check(simpleCam);
-
-                break;
-            case PORT_DENM:
-                statsLogger.incRxDenm();
-                CoopIts.Denm denm = UperEncoder.decode(payload, CoopIts.Denm.class);
-                SimpleDenm simpleDenm = new SimpleDenm(denm);
-                vehicleWarning.check(simpleDenm, area);
-                break;
-            default:
-                // fallthrough
-        }
-    }
 }

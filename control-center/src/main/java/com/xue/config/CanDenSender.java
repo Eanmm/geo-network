@@ -1,12 +1,14 @@
 package com.xue.config;
 
-import cn.hutool.json.JSONUtil;
-import com.xue.bean.MessageFactory;
-import com.xue.bean.Position;
+import com.xue.cache.Region;
 import com.xue.controller.VehicleWarningSocket;
-import com.xue.geoframe.GeoFrame;
-import com.xue.geoframe.VehicleWarning;
-import com.xue.geoframe.Warning;
+import com.xue.entity.AlertEntity;
+import com.xue.frame.GeoFrame;
+import com.xue.frame.MessageFactory;
+import com.xue.frame.SimpleDenm;
+import com.xue.frame.Warning;
+import com.xue.mapper.AlertMapper;
+import com.xue.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -15,8 +17,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author Xue
@@ -29,37 +33,39 @@ import java.util.List;
 public class CanDenSender {
 
     private final GeoFrame geoFrame;
-    private final MessageFactory messageFactory;
-
-    private final VehicleWarning vehicleWarning;
+    private final AlertMapper alertMapper;
 
     @Autowired
-    public CanDenSender(GeoFrame geoFrame, MessageFactory messageFactory, VehicleWarning vehicleWarning) {
+    public CanDenSender(GeoFrame geoFrame, AlertMapper alertMapper) {
         this.geoFrame = geoFrame;
-        this.messageFactory = messageFactory;
-        this.vehicleWarning = vehicleWarning;
+        this.alertMapper = alertMapper;
     }
 
-    @Async
-    @Scheduled(fixedRate = 1000)
-    public void sendCam() {
-        // geoFrame.sendCam(messageFactory.getCam(new Position(119.90259, 30.265911)));
+    private CopyOnWriteArrayList<Warning> warnings = new CopyOnWriteArrayList<>();
+
+    @PostConstruct
+    public void init() {
+        cacheSynchronization();
     }
+
+    public void cacheSynchronization() {
+        List<AlertEntity> alertList = alertMapper.selectList(null);
+        CopyOnWriteArrayList<Warning> freshWarnings = new CopyOnWriteArrayList<>();
+        alertList.forEach(alert -> {
+            Warning warning = new Warning(alert);
+            freshWarnings.add(warning);
+        });
+        warnings = freshWarnings;
+    }
+
 
     @Async
     @Scheduled(fixedRate = 1000)
     public void sendDenm() {
-        List<Warning> warnings = vehicleWarning.getWarnings();
-        warnings.stream().filter(Warning::getSelf).forEach(warning -> {
-            geoFrame.sendDenm(
-                    messageFactory.getDenm(
-                            new Position(warning.getLongitude(), warning.getLatitude()),
-                            warning.getSemiMajor(),
-                            warning.getSemiMinor()
-                    ),
-                    true,
-                    warning.getAreaType()
-            );
+        warnings.forEach(warning -> {
+            SimpleDenm simpleDenm = MessageFactory.getInstance().getDenm(warning);
+            geoFrame.sendDenm(simpleDenm, true, warning.getType());
+            Region.getInstance().fetchWarning(warning);
         });
     }
 
@@ -68,11 +74,11 @@ public class CanDenSender {
     public void synchronizeTrolleyWarningMessages() {
         HashMap<String, Object> sendMap = new HashMap<String, Object>() {
             {
-                put("nearbyVehicles", vehicleWarning.getNearbyVehicles());
-                put("warnings", vehicleWarning.getWarnings());
+                put("cars", Region.getInstance().getCars());
+                put("warnings", Region.getInstance().getWarnings());
             }
         };
-        VehicleWarningSocket.send(JSONUtil.toJsonStr(sendMap));
+        VehicleWarningSocket.send(JsonUtil.toJSONString(sendMap));
     }
 
 
