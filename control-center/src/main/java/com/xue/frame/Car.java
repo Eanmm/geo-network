@@ -1,5 +1,6 @@
 package com.xue.frame;
 
+import com.xue.entity.CarEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,4 +44,14 @@ public class Car {
         this.width = simpleCam.vehicleWidth;
     }
 
+    public Car(CarEntity car) {
+        this.stationId = car.getStationId();
+        this.longitude = car.getLongitude();
+        this.latitude = car.getLatitude();
+        this.height = 66;
+        this.speed = 0;
+        this.direction = car.getDirection();
+        this.length = car.getLength();
+        this.width = car.getWidth();
+    }
 }

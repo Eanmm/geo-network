@@ -20,13 +20,13 @@ public class AlertServiceImpl extends ServiceImpl<AlertMapper, AlertEntity> impl
     @Override
     public void addAlert(AlertEntity alert) {
         alertMapper.insertAlert(alert);
-        canDenSender.cacheSynchronization();
+        canDenSender.cacheWarningsSynchronization();
     }
 
     @Override
     public void delAlert(int stationId) {
         alertMapper.delAlert(stationId);
-        canDenSender.cacheSynchronization();
+        canDenSender.cacheWarningsSynchronization();
     }
 
     @Override
@@ -42,6 +42,6 @@ public class AlertServiceImpl extends ServiceImpl<AlertMapper, AlertEntity> impl
     @Override
     public void updateAlert(AlertEntity alert) {
         alertMapper.updateAlertById(alert);
-        canDenSender.cacheSynchronization();
+        canDenSender.cacheWarningsSynchronization();
     }
 }
