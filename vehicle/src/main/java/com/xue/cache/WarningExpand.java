@@ -26,7 +26,7 @@ class WarningExpand {
         pool.execute(() -> {
             while (true) {
                 try {
-                    TimeUnit.SECONDS.sleep(2);
+                    TimeUnit.MINUTES.sleep(1500);
                 } catch (InterruptedException e) {
                     log.error(e.getMessage(), e);
                 }

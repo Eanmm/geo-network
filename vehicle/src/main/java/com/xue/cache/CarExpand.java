@@ -28,7 +28,7 @@ class CarExpand {
         pool.submit(() -> {
             while (true) {
                 try {
-                    TimeUnit.SECONDS.sleep(2);
+                    TimeUnit.MILLISECONDS.sleep(1500);
                 } catch (InterruptedException e) {
                     log.error(e.getMessage(), e);
                 }
