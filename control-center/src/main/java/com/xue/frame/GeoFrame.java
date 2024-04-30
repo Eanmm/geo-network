@@ -9,6 +9,7 @@ import net.gcdc.geonetworking.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -40,6 +41,7 @@ public class GeoFrame {
     /**
      * 初始化
      */
+    @PostConstruct
     public void initialize() throws SocketException {
         log.info("geo frame start");
         executor = Executors.newCachedThreadPool();
