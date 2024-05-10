@@ -3,7 +3,6 @@ package com.xue.cache;
 import com.xue.frame.Car;
 import com.xue.frame.Warning;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -49,15 +48,20 @@ public class Region {
 
     public void fetchWarning(Warning warning) {
         Integer stationId = warning.getStationId();
-        WarningExpand warningExpand = warningExpandMap.computeIfAbsent(stationId, k -> new WarningExpand());
-        warningExpand.addWarning(warning);
+        WarningExpand warningExpand = warningExpandMap.get(stationId);
+        if (warningExpand == null) {
+            warningExpandMap.put(stationId, new WarningExpand(
+                    warning,
+                    () -> warningExpandMap.remove(stationId)
+            ));
+        } else {
+            warningExpand.setWarning(warning);
+            warningExpand.delayLife();
+        }
     }
 
     public List<Warning> getWarnings() {
-        return warningExpandMap.values().stream()
-                .map(warningExpand -> warningExpand.getWarningMark().keySet())
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+        return warningExpandMap.values().stream().map(WarningExpand::getWarning).collect(Collectors.toList());
     }
 
 }

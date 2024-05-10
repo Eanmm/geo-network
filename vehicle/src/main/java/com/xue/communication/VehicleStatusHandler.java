@@ -31,8 +31,8 @@ public class VehicleStatusHandler extends SimpleChannelInboundHandler<VehicleSta
         SimpleCam cam = MessageFactory.getInstance().getCam(car);
         GeoFrame.getInstance().sendCam(cam);
         // 发送自身警告信息
-        SimpleDenm denm = MessageFactory.getInstance().getDenm(warning);
-        GeoFrame.getInstance().sendDenm(denm, true, warning.getType());
+        /*SimpleDenm denm = MessageFactory.getInstance().getDenm(warning);
+        GeoFrame.getInstance().sendDenm(denm, true, warning.getType());*/
     }
 
 }
