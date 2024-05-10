@@ -45,4 +45,15 @@ public class Warning {
         this.width = simpleDenm.semiMajorConfidence * 100;
     }
 
+    public AlertEntity toAlertEntity() {
+        AlertEntity alertEntity = new AlertEntity();
+        alertEntity.setStationId(this.stationId);
+        alertEntity.setLongitude(this.longitude);
+        alertEntity.setLatitude(this.latitude);
+        alertEntity.setType(this.type);
+        alertEntity.setLength(this.length);
+        alertEntity.setWidth(this.width);
+        return alertEntity;
+    }
+
 }

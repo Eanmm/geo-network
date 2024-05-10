@@ -2,9 +2,9 @@ package com.xue.cache;
 
 import com.xue.frame.Warning;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -15,14 +15,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @create 2024-04-29 14:46
  */
 @Getter
+@Setter
 @Slf4j
 class WarningExpand {
 
-    private ConcurrentHashMap<Warning, AtomicBoolean> warningMark = new ConcurrentHashMap<>();
-
+    private Warning warning;
     private ExecutorService pool = Executors.newSingleThreadExecutor();
+    private AtomicBoolean down = new AtomicBoolean(true);
 
-    public WarningExpand() {
+
+    public WarningExpand(Warning warning, Execute execute) {
+        this.warning = warning;
         pool.execute(() -> {
             while (true) {
                 try {
@@ -30,21 +33,16 @@ class WarningExpand {
                 } catch (InterruptedException e) {
                     log.error(e.getMessage(), e);
                 }
-                warningMark.forEach((k, v) -> {
-                    if (v.getAndSet(true)) {
-                        warningMark.remove(k);
-                    }
-                });
+                if (down.getAndSet(true)) {
+                    break;
+                }
             }
+            execute.run();
         });
     }
 
-    public void addWarning(Warning warning) {
-        if (warningMark.containsKey(warning)) {
-            warningMark.get(warning).set(false);
-        } else {
-            warningMark.put(warning, new AtomicBoolean(false));
-        }
+    public void delayLife() {
+        down.set(false);
     }
 
 }

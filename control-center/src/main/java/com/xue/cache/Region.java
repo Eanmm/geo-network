@@ -2,8 +2,9 @@ package com.xue.cache;
 
 import com.xue.frame.Car;
 import com.xue.frame.Warning;
+import com.xue.mapper.AlertMapper;
+import com.xue.utils.SpringUtils;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -26,7 +27,9 @@ public class Region {
     }
 
     private final ConcurrentHashMap<Integer, CarExpand> carExpandMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, WarningExpand> warningExpandMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, WarningExpand> warningExpMap = new ConcurrentHashMap<>();
+
+    private final AlertMapper alertMapper = SpringUtils.getBean(AlertMapper.class);
 
 
     public void fetchCar(Car car) {
@@ -49,15 +52,26 @@ public class Region {
 
     public void fetchWarning(Warning warning) {
         Integer stationId = warning.getStationId();
-        WarningExpand warningExpand = warningExpandMap.computeIfAbsent(stationId, k -> new WarningExpand());
-        warningExpand.addWarning(warning);
+        WarningExpand warningExp = warningExpMap.get(stationId);
+        if (warningExp == null) {
+            warningExpMap.put(stationId, new WarningExpand(
+                    warning,
+                    () -> warningExpMap.remove(stationId)
+            ));
+            // 收到警告，添加入库
+            alertMapper.insertIfNotExistenceOrUpdateIfExistence(warning.toAlertEntity());
+        } else {
+            if (!warningExp.getWarning().equals(warning)) {
+                warningExp.setWarning(warning);
+                // 警告改变，更新入库
+                alertMapper.insertIfNotExistenceOrUpdateIfExistence(warning.toAlertEntity());
+            }
+            warningExp.delayLife();
+        }
     }
 
     public List<Warning> getWarnings() {
-        return warningExpandMap.values().stream()
-                .map(warningExpand -> warningExpand.getWarningMark().keySet())
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+        return warningExpMap.values().stream().map(WarningExpand::getWarning).collect(Collectors.toList());
     }
 
 }

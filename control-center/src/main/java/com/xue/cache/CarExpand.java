@@ -25,7 +25,7 @@ class CarExpand {
 
     public CarExpand(Car car, Execute execute) {
         this.car = car;
-        pool.submit(() -> {
+        pool.execute(() -> {
             while (true) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(1500);

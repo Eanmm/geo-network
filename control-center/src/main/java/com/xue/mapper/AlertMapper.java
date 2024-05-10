@@ -15,4 +15,7 @@ public interface AlertMapper extends BaseMapper<AlertEntity> {
     List<AlertEntity> getAlertAll();
 
     void updateAlertById(AlertEntity alertEntity);
+
+    int insertIfNotExistenceOrUpdateIfExistence(AlertEntity alertEntity);
+
 }

@@ -3,10 +3,8 @@ package com.xue.config;
 import com.xue.cache.Region;
 import com.xue.controller.VehicleWarningSocket;
 import com.xue.entity.AlertEntity;
-import com.xue.entity.CarEntity;
 import com.xue.frame.*;
 import com.xue.mapper.AlertMapper;
-import com.xue.mapper.CarMapper;
 import com.xue.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +32,11 @@ public class CanDenSender {
 
     private final GeoFrame geoFrame;
     private final AlertMapper alertMapper;
-    private final CarMapper carMapper;
 
     @Autowired
-    public CanDenSender(GeoFrame geoFrame, AlertMapper alertMapper, CarMapper carMapper) {
+    public CanDenSender(GeoFrame geoFrame, AlertMapper alertMapper) {
         this.geoFrame = geoFrame;
         this.alertMapper = alertMapper;
-        this.carMapper = carMapper;
     }
 
     private volatile List<Warning> warnings = new ArrayList<>();
@@ -54,11 +50,6 @@ public class CanDenSender {
     public void cacheWarningsSynchronization() {
         List<AlertEntity> alertList = alertMapper.selectList(null);
         warnings = alertList.stream().map(Warning::new).collect(Collectors.toList());
-    }
-
-    public void cacheCarsSynchronization() {
-        List<CarEntity> carEntities = carMapper.selectList(null);
-        cars = carEntities.stream().map(Car::new).collect(Collectors.toList());
     }
 
 
@@ -78,10 +69,11 @@ public class CanDenSender {
         List<Warning> warningsNow = Region.getInstance().getWarnings();
         List<Car> carsNow = Region.getInstance().getCars();
         carsNow.addAll(cars);
+        warningsNow.addAll(warnings);
         HashMap<String, Object> sendMap = new HashMap<String, Object>() {
             {
                 put("cars", carsNow);
-                put("warnings", warningsNow);
+                put("warnings", warningsNow.stream().distinct().collect(Collectors.toList()));
             }
         };
         VehicleWarningSocket.send(JsonUtil.toJSONString(sendMap));
