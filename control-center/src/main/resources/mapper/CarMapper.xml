@@ -11,13 +11,15 @@
         <result column="CAR_DIRECTION" jdbcType="INTEGER" property="direction" />
         <result column="CAR_LNG" jdbcType="DOUBLE" property="longitude" />
         <result column="CAR_LAT" jdbcType="DOUBLE" property="latitude" />
+        <result column="IS_VIRTUAL_CAR" jdbcType="BOOLEAN" property="isVirtualCar" />
     </resultMap>
 
     <insert id="insertCar" parameterType="com.xue.entity.CarEntity" useGeneratedKeys="true">
         insert into SmartTraffic.CAR (CAR_ID, CAR_NAME, CAR_LENGTH, CAR_WIDTH,
-                                      CAR_COLOR, CAR_DIRECTION, CAR_LNG, CAR_LAT)
-        values (#{stationId,jdbcType=INTEGER}, #{carName,jdbcType=VARCHAR}, #{length,jdbcType=INTEGER}, #{width,jdbcType=INTEGER},
-                #{carColor,jdbcType=VARCHAR}, #{direction,jdbcType=INTEGER}, #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE})
+                                      CAR_COLOR, CAR_DIRECTION, CAR_LNG, CAR_LAT, IS_VIRTUAL_CAR)
+        values (#{stationId,jdbcType=INTEGER}, #{carName,jdbcType=VARCHAR}, #{length,jdbcType=INTEGER},
+                #{width,jdbcType=INTEGER},#{carColor,jdbcType=VARCHAR}, #{direction,jdbcType=INTEGER},
+                #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE},  #{isVirtualCar,jdbcType=BOOLEAN})
     </insert>
 
     <delete id="delCar" >
@@ -62,6 +64,9 @@
             </if>
             <if test="latitude != null">
                 CAR_LAT = #{latitude,jdbcType=DOUBLE},
+            </if>
+            <if test="isVirtualCar!= null">
+                IS_VIRTUAL_CAR = #{isVirtualCar,jdbcType=BOOLEAN},
             </if>
         </set>
         where CAR_ID=#{stationId,jdbcType=INTEGER}

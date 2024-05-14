@@ -53,7 +53,7 @@ public class CarEntity {
     private int direction;
 
     /**
-     * 车辆位经度
+     * 车辆位置经度
      */
     @ApiModelProperty("车辆位置经度")
     @TableField("CAR_LNG")
@@ -65,5 +65,12 @@ public class CarEntity {
     @ApiModelProperty("车辆位置纬度")
     @TableField("CAR_LAT")
     private double latitude;
+
+    /**
+     * 是否虚拟车辆
+     */
+    @ApiModelProperty("是否虚拟车辆")
+    @TableField("IS_VIRTUAL_CAR")
+    private boolean isVirtualCar;
 
 }
