@@ -19,12 +19,14 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, CarEntity> implements
 
     @Override
     public void addCar(CarEntity car) {
-        carMapper.insertCar(car);
+        carMapper.insert(car);
+        canDenSender.addCar(car);
     }
 
     @Override
     public void delCar(int stationId) {
         carMapper.delCar(stationId);
+        canDenSender.removeCar(stationId);
     }
 
     @Override
@@ -40,5 +42,6 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, CarEntity> implements
     @Override
     public void updateCar(CarEntity car) {
         carMapper.updateCarById(car);
+        canDenSender.update(car);
     }
 }

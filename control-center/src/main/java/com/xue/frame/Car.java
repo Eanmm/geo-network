@@ -1,6 +1,8 @@
 package com.xue.frame;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.xue.entity.CarEntity;
+import com.xue.entity.Path;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,6 +34,9 @@ public class Car {
 
     private Integer width;
 
+    @JsonIgnore
+    private Path path;
+
 
     public Car(SimpleCam simpleCam) {
         this.stationId = simpleCam.stationId;
@@ -53,5 +58,13 @@ public class Car {
         this.direction = car.getDirection();
         this.length = car.getLength();
         this.width = car.getWidth();
+    }
+
+    public CarEntity carEntityUseUpdate() {
+        CarEntity carEntity = new CarEntity();
+        carEntity.setStationId(this.stationId);
+        carEntity.setLongitude(this.longitude);
+        carEntity.setLatitude(this.latitude);
+        return carEntity;
     }
 }

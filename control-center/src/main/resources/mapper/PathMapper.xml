@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xue.mapper.PathMapper">
+
+    <resultMap id="BaseResultMap" type="com.xue.entity.Path">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="longitude" column="longitude" jdbcType="VARCHAR"/>
+            <result property="latitude" column="latitude" jdbcType="VARCHAR"/>
+            <result property="pathId" column="path_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,longitude,latitude,
+        path_id
+    </sql>
+    <select id="selectId" resultType="integer">
+        select id
+        from path
+    </select>
+    <select id="selectOneByPathIdOrderById" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from path
+        where
+        path_id = #{pathId,jdbcType=NUMERIC}
+        order by id
+        limit 1
+    </select>
+</mapper>

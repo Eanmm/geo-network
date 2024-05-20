@@ -1,7 +1,6 @@
 package com.xue.frame;
 
 import com.xue.entity.AlertEntity;
-import com.xue.utils.ActiveConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,7 +27,8 @@ public class Warning {
     private Integer width;
 
     public Warning(AlertEntity car) {
-        this.stationId = ActiveConfig.getInstance().getStationId();
+        this.stationId = car.getStationId();
+        // this.stationId = ActiveConfig.getInstance().getStationId();
         this.longitude = car.getLongitude();
         this.latitude = car.getLatitude();
         this.type = car.getType();

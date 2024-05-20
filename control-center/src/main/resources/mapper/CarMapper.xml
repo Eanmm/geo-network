@@ -11,7 +11,7 @@
         <result column="CAR_DIRECTION" jdbcType="INTEGER" property="direction" />
         <result column="CAR_LNG" jdbcType="DOUBLE" property="longitude" />
         <result column="CAR_LAT" jdbcType="DOUBLE" property="latitude" />
-        <result column="IS_VIRTUAL_CAR" jdbcType="BOOLEAN" property="isVirtualCar" />
+        <result column="IS_VIRTUAL_CAR" jdbcType="BOOLEAN" property="virtualCar" />
     </resultMap>
 
     <insert id="insertCar" parameterType="com.xue.entity.CarEntity" useGeneratedKeys="true">
@@ -19,7 +19,7 @@
                                       CAR_COLOR, CAR_DIRECTION, CAR_LNG, CAR_LAT, IS_VIRTUAL_CAR)
         values (#{stationId,jdbcType=INTEGER}, #{carName,jdbcType=VARCHAR}, #{length,jdbcType=INTEGER},
                 #{width,jdbcType=INTEGER},#{carColor,jdbcType=VARCHAR}, #{direction,jdbcType=INTEGER},
-                #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE},  #{isVirtualCar,jdbcType=BOOLEAN})
+                #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE},  #{virtualCar,jdbcType=BOOLEAN})
     </insert>
 
     <delete id="delCar" >
@@ -65,8 +65,8 @@
             <if test="latitude != null">
                 CAR_LAT = #{latitude,jdbcType=DOUBLE},
             </if>
-            <if test="isVirtualCar!= null">
-                IS_VIRTUAL_CAR = #{isVirtualCar,jdbcType=BOOLEAN},
+            <if test="virtualCar!= null">
+                IS_VIRTUAL_CAR = #{virtualCar,jdbcType=BOOLEAN},
             </if>
         </set>
         where CAR_ID=#{stationId,jdbcType=INTEGER}
