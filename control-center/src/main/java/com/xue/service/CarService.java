@@ -9,11 +9,9 @@ public interface CarService extends IService<CarEntity> {
 
     void addCar(CarEntity car);
 
-    void delCar(int stationId);
+    void delCar(Integer stationId);
 
-    List<CarEntity> getCarList();
-
-    CarEntity getCarById(int stationId);
+    List<CarEntity> getCarList(Integer stationId);
 
     void updateCar(CarEntity car);
 

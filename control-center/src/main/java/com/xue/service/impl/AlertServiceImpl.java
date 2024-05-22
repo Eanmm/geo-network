@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
 @Service
 public class AlertServiceImpl extends ServiceImpl<AlertMapper, AlertEntity> implements AlertService {
     @Autowired
@@ -24,19 +25,18 @@ public class AlertServiceImpl extends ServiceImpl<AlertMapper, AlertEntity> impl
     }
 
     @Override
-    public void delAlert(int stationId) {
+    public void delAlert(Integer stationId) {
         alertMapper.delAlert(stationId);
         canDenSender.cacheWarningsSynchronization();
     }
 
     @Override
-    public List<AlertEntity> getAlertList() {
-        return alertMapper.getAlertAll();
-    }
-
-    @Override
-    public AlertEntity getAlertById(int stationId) {
-        return alertMapper.getAlertById(stationId);
+    public List<AlertEntity> getAlertList(Integer stationId) {
+        if (stationId != null) {
+            return alertMapper.getAlertById(stationId);
+        } else {
+            return alertMapper.getAlertAll();
+        }
     }
 
     @Override

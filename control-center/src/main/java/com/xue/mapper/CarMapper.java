@@ -10,7 +10,7 @@ public interface CarMapper extends BaseMapper<CarEntity> {
 
     void delCar(int stationId);
 
-    CarEntity getCarById(int stationId);
+    List<CarEntity> getCarById(int stationId);
 
     List<CarEntity> getCarAll();
 

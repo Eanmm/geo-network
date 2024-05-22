@@ -34,26 +34,20 @@ public class AlertController {
     public Result delCar(
             @RequestParam(name = "stationId", required = true)
             @ApiParam(value = "告警ID")
-                    int stationId
+                    Integer stationId
     ){
         alertService.delAlert(stationId);
         return new Result().success(null);
     }
 
-    @ApiOperation("精确查询告警信息")
-    @GetMapping("/get-alert")
-    AlertEntity getCarById(
-            @RequestParam(name = "stationId", required = true)
-            @ApiParam(value = "告警ID")
-                    int stationId
-    ){
-        return alertService.getAlertById(stationId);
-    }
-
-    @ApiOperation("查询全部告警信息")
+    @ApiOperation("查询告警信息")
     @GetMapping("/get-alert/list")
-    List<AlertEntity> getAlertList(){
-        return alertService.getAlertList();
+    List<AlertEntity> getAlertList(
+            @RequestParam(name = "stationId", required = false)
+            @ApiParam(value = "告警ID")
+                    Integer stationId
+    ){
+        return alertService.getAlertList(stationId);
     }
 
     @ApiOperation("修改告警信息")

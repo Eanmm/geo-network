@@ -33,26 +33,20 @@ public class CarController {
     public Result delCar(
             @RequestParam(name = "stationId", required = true)
             @ApiParam(value = "车辆ID")
-                    int stationId
+                    Integer stationId
     ){
         carService.delCar(stationId);
         return new Result().success(null);
     }
 
-    @ApiOperation("精确查询车辆信息")
-    @GetMapping("/get-car")
-    CarEntity getCarById(
-            @RequestParam(name = "stationId", required = true)
-            @ApiParam(value = "车辆ID")
-                    int stationId
-    ){
-        return carService.getCarById(stationId);
-    }
-
-    @ApiOperation("查询全部车辆信息")
+    @ApiOperation("查询车辆信息")
     @GetMapping("/get-car/list")
-    List<CarEntity> getCarList(){
-        return carService.getCarList();
+    List<CarEntity> getCarList(
+            @RequestParam(name = "stationId", required = false)
+            @ApiParam(value = "车辆ID")
+                    Integer stationId
+    ){
+        return carService.getCarList(stationId);
     }
 
     @ApiOperation("修改车辆信息")

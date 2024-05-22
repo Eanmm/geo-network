@@ -24,19 +24,18 @@ public class CarServiceImpl extends ServiceImpl<CarMapper, CarEntity> implements
     }
 
     @Override
-    public void delCar(int stationId) {
+    public void delCar(Integer stationId) {
         carMapper.delCar(stationId);
         canDenSender.removeCar(stationId);
     }
 
     @Override
-    public List<CarEntity> getCarList() {
-        return carMapper.getCarAll();
-    }
-
-    @Override
-    public CarEntity getCarById(int stationId) {
-        return carMapper.getCarById(stationId);
+    public List<CarEntity> getCarList(Integer stationId) {
+        if (stationId != null) {
+            return carMapper.getCarById(stationId);
+        } else {
+            return carMapper.getCarAll();
+        }
     }
 
     @Override
