@@ -1,5 +1,7 @@
 package com.xue.cache;
 
+import com.xue.config.CanDenSender;
+import com.xue.entity.AlertEntity;
 import com.xue.frame.Car;
 import com.xue.frame.Warning;
 import com.xue.mapper.AlertMapper;
@@ -30,6 +32,7 @@ public class Region {
     private final ConcurrentHashMap<Integer, WarningExpand> warningExpMap = new ConcurrentHashMap<>();
 
     private final AlertMapper alertMapper = SpringUtils.getBean(AlertMapper.class);
+    private final CanDenSender canDenSender = SpringUtils.getBean(CanDenSender.class);
 
 
     public void fetchCar(Car car) {
@@ -59,12 +62,12 @@ public class Region {
                     () -> warningExpMap.remove(stationId)
             ));
             // 收到警告，添加入库
-            alertMapper.insertIfNotExistenceOrUpdateIfExistence(warning.toAlertEntity());
+            updateDBAndReloadWarningByWarning(warning.toAlertEntity());
         } else {
             if (!warningExp.getWarning().equals(warning)) {
                 warningExp.setWarning(warning);
                 // 警告改变，更新入库
-                alertMapper.insertIfNotExistenceOrUpdateIfExistence(warning.toAlertEntity());
+                updateDBAndReloadWarningByWarning(warning.toAlertEntity());
             }
             warningExp.delayLife();
         }
@@ -72,6 +75,11 @@ public class Region {
 
     public List<Warning> getWarnings() {
         return warningExpMap.values().stream().map(WarningExpand::getWarning).collect(Collectors.toList());
+    }
+
+    public void updateDBAndReloadWarningByWarning(AlertEntity alertEntity) {
+        alertMapper.insertIfNotExistenceOrUpdateIfExistence(alertEntity);
+        canDenSender.cacheWarningsSynchronization();
     }
 
 }
