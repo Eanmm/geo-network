@@ -22,7 +22,7 @@ public class Config {
         return ConfigInstance.INSTANCE;
     }
 
-    private Integer stationId = 999;
+    private Integer stationId = 1;
 
     private Integer length = 40;
 

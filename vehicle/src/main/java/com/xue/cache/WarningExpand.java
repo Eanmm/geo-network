@@ -28,12 +28,15 @@ class WarningExpand {
         pool.execute(() -> {
             while (true) {
                 try {
-                    TimeUnit.MINUTES.sleep(1500);
+                    TimeUnit.MILLISECONDS.sleep(1500);
                 } catch (InterruptedException e) {
                     log.error(e.getMessage(), e);
                 }
-                execute.run();
+                if (down.getAndSet(true)) {
+                    break;
+                }
             }
+            execute.run();
         });
     }
 

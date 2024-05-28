@@ -35,7 +35,7 @@ public class MessageFactory {
                 car.getHeight(),
                 car.getDirection(),
                 1,
-                car.getSpeed(),
+                car.getSpeed() / 100,
                 1,
                 car.getLength(),
                 car.getWidth(),

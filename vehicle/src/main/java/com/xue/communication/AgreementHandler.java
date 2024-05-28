@@ -19,21 +19,26 @@ import java.nio.charset.StandardCharsets;
 @ChannelHandler.Sharable
 public class AgreementHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
+    private static final String HEARTBEAT = "heart beat";
+
     @Override
     protected void channelRead0(ChannelHandlerContext chc, DatagramPacket datagramPacket) throws Exception {
         if (QtMutual.sendAddress == null) {
-            InetSocketAddress ipSocket = (InetSocketAddress) chc.channel().remoteAddress();
+            InetSocketAddress ipSocket = datagramPacket.sender();
             String hostAddress = ipSocket.getAddress().getHostAddress();
-            log.info("get qt client address:{}", hostAddress);
-            String[] adArr = hostAddress.split(":");
-            QtMutual.sendAddress = new InetSocketAddress(adArr[0], Integer.parseInt(adArr[1]));
+            int port = ipSocket.getPort();
+            log.info("get qt client address:{}-{}", hostAddress, port);
+            QtMutual.sendAddress = new InetSocketAddress(hostAddress, port);
         }
         ByteBuf buf = datagramPacket.content();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
-
-        Agreement agreement = Agreement.decode(new String(bytes, StandardCharsets.UTF_8));
-        chc.fireChannelRead(agreement);
+        String messageStr = new String(bytes, StandardCharsets.UTF_8);
+        if (!HEARTBEAT.equals(messageStr)) {
+            // log.info("receive message:{}", messageStr);
+            Agreement agreement = Agreement.decode(messageStr);
+            chc.fireChannelRead(agreement);
+        }
     }
 
 }

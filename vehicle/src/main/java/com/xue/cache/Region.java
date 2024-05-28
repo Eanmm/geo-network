@@ -2,6 +2,7 @@ package com.xue.cache;
 
 import com.xue.frame.Car;
 import com.xue.frame.Warning;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
  * @author Xue
  * @create 2024-04-28 15:43
  */
+@Slf4j
 public class Region {
 
     private Region() {

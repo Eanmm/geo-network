@@ -43,7 +43,7 @@ public class Car {
         this.longitude = simpleCam.longitude / 1e7;
         this.latitude = simpleCam.latitude / 1e7;
         this.height = simpleCam.altitude;
-        this.speed = simpleCam.speed;
+        this.speed = simpleCam.speed * 100;
         this.direction = simpleCam.heading;
         this.length = simpleCam.vehicleLength;
         this.width = simpleCam.vehicleWidth;
