@@ -9,13 +9,15 @@
         <result column="ALERT_TYPE" jdbcType="INTEGER" property="type" />
         <result column="ALERT_LNG" jdbcType="DOUBLE" property="longitude" />
         <result column="ALERT_LAT" jdbcType="DOUBLE" property="latitude" />
+        <result column="SHOW_FLAG" jdbcType="BOOLEAN" property="showFlag" />
     </resultMap>
 
     <insert id="insertAlert" parameterType="com.xue.entity.AlertEntity" useGeneratedKeys="true">
         insert into SmartTraffic.ALERT (ALERT_ID, ALERT_LENGTH, ALERT_WIDTH,
-                                        ALERT_TYPE, ALERT_LNG,ALERT_LAT)
+                                        ALERT_TYPE, ALERT_LNG,ALERT_LAT,SHOW_FLAG)
         values (#{stationId,jdbcType=INTEGER}, #{length,jdbcType=INTEGER}, #{width,jdbcType=INTEGER},
-                #{type,jdbcType=INTEGER}, #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE})
+                #{type,jdbcType=INTEGER}, #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE},
+                #{showFlag,jdbcType=BOOLEAN})
     </insert>
 
     <delete id="delAlert" >
@@ -55,6 +57,9 @@
             <if test="latitude != null">
                 ALERT_LAT = #{latitude,jdbcType=DOUBLE},
             </if>
+            <if test="showFlag != null">
+                SHOW_FLAG = #{showFlag,jdbcType=BOOLEAN},
+            </if>
         </set>
         where ALERT_ID = #{stationId,jdbcType=INTEGER}
     </update>
@@ -68,6 +73,7 @@
             <if test="type != null">ALERT_TYPE,</if>
             <if test="longitude != null">ALERT_LNG,</if>
             <if test="latitude != null">ALERT_LAT,</if>
+            <if test="showFlag != null">SHOW_FLAG,</if>
         </trim>
         values
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -77,6 +83,7 @@
             <if test="type != null">#{type,jdbcType=INTEGER},</if>
             <if test="longitude != null">#{longitude,jdbcType=DOUBLE},</if>
             <if test="latitude != null">#{latitude,jdbcType=DOUBLE},</if>
+            <if test="showFlag != null">#{showFlag,jdbcType=BOOLEAN},</if>
         </trim>
         ON DUPLICATE KEY UPDATE
         <trim suffixOverrides=",">
@@ -85,6 +92,7 @@
             <if test="type != null">ALERT_TYPE=#{type},</if>
             <if test="longitude != null">ALERT_LNG=#{longitude},</if>
             <if test="latitude != null">ALERT_LAT=#{latitude},</if>
+            <if test="showFlag != null">SHOW_FLAG=#{showFlag},</if>
         </trim>
     </insert>
 

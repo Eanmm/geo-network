@@ -51,5 +51,10 @@ public class AlertEntity {
     @TableField("ALERT_LAT")
     private Double latitude;
 
-
+    /**
+     * 是否展示告警
+     */
+    @ApiModelProperty("是否展示告警")
+    @TableField("SHOW_FLAG")
+    private Boolean showFlag;
 }
