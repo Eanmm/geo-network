@@ -1,8 +1,9 @@
 package com.xue.frame;
 
-import com.xue.cache.Region;
+import com.xue.SelfWarning;
 import com.xue.arrangement.Config;
 import com.xue.bean.AlertRelay;
+import com.xue.cache.Region;
 import com.xue.communication.QtMutual;
 import lombok.extern.slf4j.Slf4j;
 import net.gcdc.asn1.uper.UperEncoder;
@@ -108,6 +109,8 @@ public class GeoFrame {
     /* Message lifetime */
     private static final double CAM_LIFETIME_SECONDS = 0.9;
 
+    private static final Integer distance = Config.getInstance().getStartWarningDistance();
+
     private void simpleFromProper(
             byte[] payload, int destinationPort, Area area, Boolean inside) {
         switch (destinationPort) {
@@ -123,10 +126,14 @@ public class GeoFrame {
                 statsLogger.incRxDenm();
                 CoopIts.Denm denm = UperEncoder.decode(payload, CoopIts.Denm.class);
                 SimpleDenm simpleDenm = new SimpleDenm(denm);
-                if (inside) {
+                // 判断警告点和当前点的距离
+                double longitude = simpleDenm.longitude / 1e7;
+                double latitude = simpleDenm.latitude / 1e7;
+                Position position = SelfWarning.getInstance().getPosition();
+                if (position != null && position.distanceInMetersTo(new Position(latitude, longitude)) < distance) {
                     // 立刻透传
-                    QtMutual.sendMsg(new AlertRelay(simpleDenm.longitude / 1e7,
-                            simpleDenm.latitude / 1e7,
+                    QtMutual.sendMsg(new AlertRelay(longitude,
+                            latitude,
                             area.type().code(),
                             simpleDenm.semiMajorConfidence * 100,
                             simpleDenm.semiMinorConfidence * 100

@@ -1,10 +1,12 @@
 package com.xue;
 
+import com.xue.arrangement.Config;
 import com.xue.cache.Region;
 import com.xue.frame.GeoFrame;
 import com.xue.frame.MessageFactory;
 import com.xue.frame.SimpleDenm;
 import com.xue.frame.Warning;
+import lombok.Getter;
 import lombok.Setter;
 import net.gcdc.geonetworking.Position;
 
@@ -17,18 +19,20 @@ import java.util.concurrent.TimeUnit;
  * @create 2024-04-29 17:25
  */
 @Setter
+@Getter
 public class SelfWarning {
 
     private volatile Warning warning;
 
     private volatile Position position;
 
+    private static final Integer distance = Config.getInstance().getStopWarningDistance();
 
     private SelfWarning() {
         ScheduledExecutorService pool = Executors.newSingleThreadScheduledExecutor();
         pool.scheduleAtFixedRate(() -> {
             if (warning != null) {
-                if (new Position(warning.getLatitude(), warning.getLongitude()).distanceInMetersTo(position) < 50) {
+                if (new Position(warning.getLatitude(), warning.getLongitude()).distanceInMetersTo(position) < distance) {
                     Region.getInstance().fetchWarning(warning);
                     SimpleDenm denm = MessageFactory.getInstance().getDenm(warning);
                     GeoFrame.getInstance().sendDenm(denm, true, warning.getType());
