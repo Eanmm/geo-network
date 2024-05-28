@@ -73,6 +73,7 @@ public class QtMutual {
 
     public static void sendMsg(Agreement agreement) {
         String message = JsonUtil.toJSONString(agreement);
+        // log.info("QtMutual sendMsg:{}", message);
         ByteBuf buf = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
         if (sendAddress != null && channel != null && channel.isActive()) {
             channel.writeAndFlush(new DatagramPacket(buf, sendAddress));

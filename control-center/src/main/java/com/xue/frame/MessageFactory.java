@@ -1,7 +1,6 @@
 package com.xue.frame;
 
 
-import com.xue.utils.ActiveConfig;
 import org.springframework.util.ObjectUtils;
 
 import java.time.Instant;
@@ -52,7 +51,7 @@ public class MessageFactory {
 
     public SimpleDenm getDenm(Warning warning) {
         return new SimpleDenm(
-                ActiveConfig.getInstance().getStationId(),
+                warning.getStationId(),
                 getGenerationDeltaTime(),
                 (byte) 160,
                 (byte) 64,
