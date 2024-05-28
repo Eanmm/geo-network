@@ -72,7 +72,9 @@ public class CanDenSender {
     }
 
     public void cacheWarningsSynchronization() {
-        List<AlertEntity> alertList = alertMapper.selectList(null);
+        LambdaQueryWrapper<AlertEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AlertEntity::getShowFlag, true);
+        List<AlertEntity> alertList = alertMapper.selectList(wrapper);
         warnings = alertList.stream().map(Warning::new).collect(Collectors.toList());
     }
 

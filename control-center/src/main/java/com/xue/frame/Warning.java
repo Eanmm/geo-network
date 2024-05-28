@@ -53,6 +53,7 @@ public class Warning {
         alertEntity.setType(this.type);
         alertEntity.setLength(this.length);
         alertEntity.setWidth(this.width);
+        alertEntity.setShowFlag(true);
         return alertEntity;
     }
 

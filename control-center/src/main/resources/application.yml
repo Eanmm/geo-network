@@ -26,6 +26,6 @@ mybatis-plus:
 router:
   countryCode: 86
   localPortForUdpLinkLayer: 4000
-  remoteAddressForUdpLinkLayer: 192.168.3.2:4001
-  macAddress: 00:26:B6:F5:3F:0B
+  remoteAddressForUdpLinkLayer: 10.15.73.148:4001
+  macAddress: F8:E4:3B:B3:ED:13
   stationId: 66
