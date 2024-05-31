@@ -33,9 +33,9 @@ public class Config {
     private Integer localPortForUdpLinkLayer = 4000;
     private String remoteAddressForUdpLinkLayer = "127.0.0.1:4001";
 
-    private Integer stopWarningDistance = 50;
+    private Double longitude = 119.902185;
 
-    private Integer startWarningDistance = 50;
+    private Double latitude = 30.267588;
 
     public void loadConfig(String[] args) {
         for (int i = 0; i < args.length; i++) {
@@ -58,12 +58,12 @@ public class Config {
             } else if ("--remoteAddressForUdpLinkLayer".equals(argItem)) {
                 i++;
                 this.remoteAddressForUdpLinkLayer = args[i];
-            } else if ("--stopWarningDistance".equals(argItem)) {
+            } else if ("--longitude".equals(argItem)) {
                 i++;
-                this.stopWarningDistance = Integer.parseInt(args[i]);
-            } else if ("--startWarningDistance".equals(argItem)) {
+                this.longitude = Double.parseDouble(args[i]);
+            } else if ("--latitude".equals(argItem)) {
                 i++;
-                this.startWarningDistance = Integer.parseInt(args[i]);
+                this.latitude = Double.parseDouble(args[i]);
             }
         }
         if (stationId == null) {
@@ -71,13 +71,13 @@ public class Config {
         }
         log.info("配置信息读取完成:" +
                 "\n车辆Id:{}" +
-                "\n车辆长度:{}" +
-                "\n车辆宽度:{}" +
+                "\nlength:{}" +
+                "\nwidth:{}" +
                 "\nmac地址:{}" +
-                "\n远离警告点停止警告距离:{}" +
-                "\n靠近警告点开始报警距离:{}" +
+                "\nlongitude:{}" +
+                "\nlatitude:{}" +
                 "\nudp2eth server port:{}" +
-                "\nudp2eth client:{}", stationId, length, width, mac, stopWarningDistance, startWarningDistance, localPortForUdpLinkLayer, remoteAddressForUdpLinkLayer
+                "\nudp2eth client:{}", stationId, length, width, mac, longitude, latitude, localPortForUdpLinkLayer, remoteAddressForUdpLinkLayer
         );
     }
 

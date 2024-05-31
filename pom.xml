@@ -18,6 +18,7 @@
         <module>car</module>
         <module>control-center</module>
         <module>vehicle</module>
+        <module>sendTest</module>
     </modules>
 
     <properties>
