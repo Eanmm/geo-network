@@ -39,8 +39,8 @@ public class Warning {
         this.longitude = simpleDenm.longitude / 1e7;
         this.latitude = simpleDenm.latitude / 1e7;
         this.type = type;
-        this.length = simpleDenm.semiMajorConfidence * 100;
-        this.width = simpleDenm.semiMajorConfidence * 100;
+        this.length = simpleDenm.semiMajorConfidence;
+        this.width = simpleDenm.semiMajorConfidence;
     }
 
 }
